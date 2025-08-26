@@ -139,7 +139,7 @@ const API_KEY = 'your-api-key'; // Optional but recommended
 - [x] Initialize with README
 - [ ] Add MIT license
 - [x] Create folder structure as per PLANNING.md
-- [ ] Enable GitHub Pages (Settings → Pages → Source: main branch)
+- [x] Enable GitHub Pages (Settings → Pages → Source: main branch)
 - [x] Add `.gitignore` for config files
 
 **Acceptance Criteria:**
@@ -150,25 +150,26 @@ const API_KEY = 'your-api-key'; // Optional but recommended
 
 ---
 
-### **Task 2.2: Cloudflare Worker Setup** 🟢
+### **Task 2.2: Cloudflare Worker Setup** ✅
 **Priority:** P0  
 **Estimated Time:** 30 minutes  
 **Dependencies:** None  
-**Assignee:** Unassigned  
+**Assignee:** rheat  
+**Completed:** 2025-08-26  
 
 **Description:** Create CORS proxy worker for fetching AO3 content.
 
 **Sub-tasks:**
-- [ ] Sign up for Cloudflare account (free)
-- [ ] Go to Workers & Pages
-- [ ] Create new Worker: "ao3-cors-proxy"
-- [ ] Implement proxy logic:
-  - [ ] Accept URL parameter
-  - [ ] Validate AO3 domain
-  - [ ] Fetch content
-  - [ ] Return with CORS headers
-- [ ] Test with sample AO3 URL
-- [ ] Deploy and get worker URL
+- [x] Sign up for Cloudflare account (free)
+- [x] Go to Workers & Pages
+- [x] Create new Worker: "ao3-cors-proxy"
+- [x] Implement proxy logic:
+  - [x] Accept URL parameter
+  - [x] Validate AO3 domain
+  - [x] Fetch content
+  - [x] Return with CORS headers
+- [x] Test with sample AO3 URL
+- [x] Deploy and get worker URL
 
 **Acceptance Criteria:**
 - Worker deployed and accessible
@@ -188,20 +189,21 @@ export default {
 
 ---
 
-### **Task 2.3: Project Configuration** 🟢
+### **Task 2.3: Project Configuration** ✅
 **Priority:** P0  
 **Estimated Time:** 15 minutes  
 **Dependencies:** Tasks 1.3, 2.1, 2.2  
-**Assignee:** Unassigned  
+**Assignee:** rheat  
+**Completed:** 2025-08-26  
 
 **Description:** Create configuration file with all service credentials.
 
 **Sub-tasks:**
-- [ ] Create `js/config.js` file
-- [ ] Add Google Client ID
-- [ ] Add Cloudflare Worker URL
-- [ ] Add any other configuration
-- [ ] Ensure config.js is in .gitignore
+- [x] Create `js/config.js` file
+- [x] Add Google Client ID
+- [x] Add Cloudflare Worker URL
+- [x] Add any other configuration
+- [x] Ensure config.js is in .gitignore
 
 **Template:**
 ```javascript
@@ -223,25 +225,26 @@ const CONFIG = {
 
 ## 📋 Phase 3: Core Development (Day 2-3)
 
-### **Task 3.1: HTML Structure** 🟢
+### **Task 3.1: HTML Structure** ✅
 **Priority:** P0  
 **Estimated Time:** 1 hour  
 **Dependencies:** Task 2.1  
-**Assignee:** Unassigned  
+**Assignee:** rheat  
+**Completed:** 2025-08-26  
 
 **Description:** Create main HTML structure with semantic markup.
 
 **Sub-tasks:**
-- [ ] Create `index.html`
-- [ ] Add meta tags (viewport, SEO)
-- [ ] Include Google API scripts
-- [ ] Create main layout structure:
-  - [ ] Header with title
-  - [ ] Google Sign-In button container
-  - [ ] Main form (hidden initially)
-  - [ ] Status messages area
-  - [ ] Footer with links
-- [ ] Add accessibility attributes
+- [x] Create `index.html`
+- [x] Add meta tags (viewport, SEO)
+- [x] Include Google API scripts
+- [x] Create main layout structure:
+  - [x] Header with title
+  - [x] Google Sign-In button container
+  - [x] Main form (hidden initially)
+  - [x] Status messages area
+  - [x] Footer with links
+- [x] Add accessibility attributes
 
 **Key Elements:**
 - Google Sign-In div
@@ -259,25 +262,26 @@ const CONFIG = {
 
 ---
 
-### **Task 3.2: CSS Styling** 🟢
+### **Task 3.2: CSS Styling** ✅
 **Priority:** P1  
 **Estimated Time:** 2 hours  
 **Dependencies:** Task 3.1  
-**Assignee:** Unassigned  
+**Assignee:** rheat  
+**Completed:** 2025-08-26  
 
 **Description:** Create responsive, mobile-first styling.
 
 **Sub-tasks:**
-- [ ] Create `css/styles.css`
-- [ ] Implement CSS reset/normalize
-- [ ] Design mobile-first layouts
-- [ ] Style Google Sign-In button
-- [ ] Create form styles
-- [ ] Add loading states
-- [ ] Implement status message styles
-- [ ] Add responsive breakpoints
-- [ ] Create smooth transitions
-- [ ] Ensure touch-friendly targets
+- [x] Create `css/styles.css`
+- [x] Implement CSS reset/normalize
+- [x] Design mobile-first layouts
+- [x] Style Google Sign-In button
+- [x] Create form styles
+- [x] Add loading states
+- [x] Implement status message styles
+- [x] Add responsive breakpoints
+- [x] Create smooth transitions
+- [x] Ensure touch-friendly targets
 
 **Design Requirements:**
 - Mobile-first approach

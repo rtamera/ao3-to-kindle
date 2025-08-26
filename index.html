@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Send AO3 fanfiction directly to your Kindle device using your Gmail account. Free, secure, and mobile-friendly.">
+    <meta name="keywords" content="AO3, Archive of Our Own, Kindle, fanfiction, Gmail, ebook">
+    <meta name="author" content="AO3 to Kindle Service">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://rheath.github.io/ao3-to-kindle/">
+    <meta property="og:title" content="AO3 to Kindle - Send Fanfiction to Your Kindle">
+    <meta property="og:description" content="Send AO3 fanfiction directly to your Kindle device using your Gmail account. Free, secure, and mobile-friendly.">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://rheath.github.io/ao3-to-kindle/">
+    <meta property="twitter:title" content="AO3 to Kindle - Send Fanfiction to Your Kindle">
+    <meta property="twitter:description" content="Send AO3 fanfiction directly to your Kindle device using your Gmail account. Free, secure, and mobile-friendly.">
+    
+    <title>AO3 to Kindle - Send Fanfiction to Your Kindle</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/styles.css">
+    
+    <!-- Google API Scripts -->
+    <script src="https://accounts.google.com/gsi/client" defer></script>
+    <script src="https://apis.google.com/js/api.js" defer></script>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <h1 class="title">
+                <span class="title-main">AO3 to Kindle</span>
+                <span class="title-subtitle">Send fanfiction directly to your Kindle</span>
+            </h1>
+        </div>
+    </header>
+
+    <main class="main" role="main">
+        <div class="container">
+            <!-- Authentication Section -->
+            <section class="auth-section" id="auth-section" aria-labelledby="auth-heading">
+                <div class="auth-card">
+                    <h2 id="auth-heading" class="section-heading">Get Started</h2>
+                    <p class="auth-description">
+                        Sign in with your Google account to send fanfiction from AO3 directly to your Kindle device.
+                        We only request permission to send emails on your behalf.
+                    </p>
+                    <div class="google-signin-container">
+                        <div id="g_id_onload"
+                             data-client_id=""
+                             data-callback="handleCredentialResponse"
+                             data-auto_prompt="false">
+                        </div>
+                        <div class="g_id_signin"
+                             data-type="standard"
+                             data-size="large"
+                             data-theme="outline"
+                             data-text="sign_in_with"
+                             data-shape="rectangular"
+                             data-logo_alignment="left">
+                        </div>
+                    </div>
+                    <p class="privacy-note">
+                        <small>
+                            Your privacy is protected. We don't store any of your data.
+                            <a href="privacy.html" target="_blank" rel="noopener">Privacy Policy</a> |
+                            <a href="terms.html" target="_blank" rel="noopener">Terms of Service</a>
+                        </small>
+                    </p>
+                </div>
+            </section>
+
+            <!-- Main App Section (Initially Hidden) -->
+            <section class="app-section" id="app-section" aria-labelledby="app-heading" hidden>
+                <div class="app-card">
+                    <div class="user-info">
+                        <span id="user-name" class="user-name"></span>
+                        <button type="button" id="signout-btn" class="btn-link" aria-label="Sign out">
+                            Sign Out
+                        </button>
+                    </div>
+
+                    <h2 id="app-heading" class="section-heading">Send to Kindle</h2>
+                    
+                    <form id="send-form" class="send-form" novalidate>
+                        <div class="form-group">
+                            <label for="ao3-url" class="form-label">
+                                AO3 Story URL
+                                <span class="required" aria-label="required">*</span>
+                            </label>
+                            <input 
+                                type="url" 
+                                id="ao3-url" 
+                                name="ao3Url"
+                                class="form-input" 
+                                placeholder="https://archiveofourown.org/works/12345678"
+                                required
+                                aria-describedby="ao3-url-help ao3-url-error"
+                            >
+                            <div id="ao3-url-help" class="form-help">
+                                Paste the URL of any AO3 work you want to send to your Kindle
+                            </div>
+                            <div id="ao3-url-error" class="form-error" role="alert" aria-live="polite"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="kindle-email" class="form-label">
+                                Kindle Email Address
+                                <span class="required" aria-label="required">*</span>
+                            </label>
+                            <input 
+                                type="email" 
+                                id="kindle-email" 
+                                name="kindleEmail"
+                                class="form-input" 
+                                placeholder="username@kindle.com"
+                                required
+                                aria-describedby="kindle-email-help kindle-email-error"
+                            >
+                            <div id="kindle-email-help" class="form-help">
+                                Find your Kindle email in your 
+                                <a href="https://www.amazon.com/mn/dcw/myx.html/ref=kinw_myk_redirect#/home/settings/payment" 
+                                   target="_blank" rel="noopener">Amazon account settings</a>
+                            </div>
+                            <div id="kindle-email-error" class="form-error" role="alert" aria-live="polite"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="format-select" class="form-label">File Format</label>
+                            <select id="format-select" name="format" class="form-select" aria-describedby="format-help">
+                                <option value="mobi">MOBI (Recommended for Kindle)</option>
+                                <option value="epub">EPUB (For newer Kindles)</option>
+                                <option value="azw3">AZW3 (Best quality, if available)</option>
+                            </select>
+                            <div id="format-help" class="form-help">
+                                MOBI works on all Kindle devices. EPUB works on newer models (2022+).
+                            </div>
+                        </div>
+
+                        <button type="submit" id="send-btn" class="btn-primary btn-large" disabled>
+                            <span class="btn-text">Send to Kindle</span>
+                            <span class="btn-spinner" aria-hidden="true"></span>
+                        </button>
+                    </form>
+                </div>
+            </section>
+
+            <!-- Status Messages -->
+            <section class="status-section" id="status-section" role="status" aria-live="polite" aria-atomic="true">
+                <div id="status-message" class="status-message"></div>
+                <div id="progress-container" class="progress-container" hidden>
+                    <div class="progress-bar">
+                        <div id="progress-fill" class="progress-fill" role="progressbar" 
+                             aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                    <div id="progress-text" class="progress-text"></div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-links">
+                    <a href="https://github.com/rheath/ao3-to-kindle" target="_blank" rel="noopener">
+                        GitHub
+                    </a>
+                    <a href="privacy.html" target="_blank" rel="noopener">Privacy</a>
+                    <a href="terms.html" target="_blank" rel="noopener">Terms</a>
+                    <a href="#faq">FAQ</a>
+                </div>
+                <p class="footer-text">
+                    Free and open source. Your data stays private.
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/gmail.js"></script>
+    <script src="js/ao3.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
