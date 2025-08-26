@@ -180,13 +180,58 @@ class App {
       
       console.log('Form submission:', { ao3Url, kindleEmail, format });
       
-      // For now, just show that Gmail integration is ready
-      // AO3 fetching will be implemented in the next task
-      this.showStatus('AO3 integration coming next! Gmail API is ready.', 'info');
+      // Step 1: Fetch AO3 work
+      this.updateProgress('Fetching story from AO3...', 25);
+      const workData = await window.ao3Manager.fetchWork(ao3Url, format);
+      
+      // Step 2: Validate file size
+      if (!window.ao3Manager.isFileSizeValid(workData.file.size)) {
+        const fileSize = window.ao3Manager.formatFileSize(workData.file.size);
+        throw new Error(`File is too large (${fileSize}). Gmail has a 25MB limit. Try a different format.`);
+      }
+      
+      // Step 3: Send to Kindle via Gmail
+      this.updateProgress(`Sending "${workData.metadata.title}" to your Kindle...`, 75);
+      
+      const result = await window.gmailManager.sendToKindle(
+        kindleEmail,
+        workData.metadata.title,
+        workData.metadata.authorString,
+        workData.file.data,
+        workData.file.fileName,
+        format
+      );
+      
+      // Step 4: Success!
+      this.updateProgress('Success! Story sent to your Kindle.', 100);
+      
+      const fileSize = window.ao3Manager.formatFileSize(workData.file.size);
+      this.showStatus(
+        `✅ "${workData.metadata.title}" by ${workData.metadata.authorString} has been sent to ${kindleEmail}! ` +
+        `File size: ${fileSize}. It should appear on your Kindle shortly.`,
+        'success'
+      );
       
     } catch (error) {
       console.error('Send form error:', error);
-      this.showStatus('An error occurred. Please try again.', 'error');
+      this.hideProgress();
+      
+      // Show user-friendly error messages
+      let errorMessage = 'An error occurred. Please try again.';
+      
+      if (error.message.includes('CORS proxy')) {
+        errorMessage = 'Unable to connect to AO3. Please check your internet connection and try again.';
+      } else if (error.message.includes('Failed to fetch AO3')) {
+        errorMessage = 'Could not fetch the story from AO3. Please check the URL and try again.';
+      } else if (error.message.includes('too large')) {
+        errorMessage = error.message; // File size error is already user-friendly
+      } else if (error.message.includes('Gmail')) {
+        errorMessage = 'Failed to send email. Please check your authentication and try again.';
+      } else if (error.message.includes('URL must be')) {
+        errorMessage = error.message; // URL validation errors are already user-friendly
+      }
+      
+      this.showStatus(errorMessage, 'error');
     } finally {
       this.setFormLoading(false);
     }
@@ -230,13 +275,12 @@ class App {
    * Validate AO3 URL format
    */
   validateAO3Url(url) {
-    try {
-      const urlObj = new URL(url);
-      return urlObj.hostname === 'archiveofourown.org' && 
-             urlObj.pathname.includes('/works/');
-    } catch {
+    if (!window.ao3Manager) {
       return false;
     }
+    
+    const validation = window.ao3Manager.validateAO3Url(url);
+    return validation.valid;
   }
 
   /**
@@ -309,6 +353,44 @@ class App {
     const { error, message } = event.detail;
     console.error('Auth error received:', error);
     this.showStatus(message || 'Authentication failed', 'error');
+  }
+
+  /* =================================================================
+     Progress Management
+     ================================================================= */
+
+  /**
+   * Update progress bar and message
+   */
+  updateProgress(message, percentage) {
+    const progressContainer = document.getElementById('progress-container');
+    const progressFill = document.getElementById('progress-fill');
+    const progressText = document.getElementById('progress-text');
+    
+    if (progressContainer) {
+      progressContainer.hidden = false;
+    }
+    
+    if (progressFill) {
+      progressFill.style.width = `${percentage}%`;
+      progressFill.setAttribute('aria-valuenow', percentage);
+    }
+    
+    if (progressText) {
+      progressText.textContent = message;
+    }
+    
+    console.log(`Progress: ${percentage}% - ${message}`);
+  }
+
+  /**
+   * Hide progress bar
+   */
+  hideProgress() {
+    const progressContainer = document.getElementById('progress-container');
+    if (progressContainer) {
+      progressContainer.hidden = true;
+    }
   }
 
   /* =================================================================

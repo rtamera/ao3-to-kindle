@@ -317,7 +317,7 @@ const CONFIG = {
 - [x] Add token refresh logic
 - [x] Handle auth errors
 - [x] Update UI based on auth state
-- [ ] Test with test account
+- [x] Test with test account
 
 **Key Functions:**
 ```javascript
@@ -338,25 +338,26 @@ const CONFIG = {
 
 ---
 
-### **Task 3.4: Gmail API Integration** 🔴
+### **Task 3.4: Gmail API Integration** ✅
 **Priority:** P0  
 **Estimated Time:** 3 hours  
 **Dependencies:** Task 3.3  
-**Assignee:** Unassigned  
+**Assignee:** rheat  
+**Completed:** 2025-08-26  
 
 **Description:** Implement Gmail API for sending emails with attachments.
 
 **Sub-tasks:**
-- [ ] Create `js/gmail.js`
-- [ ] Initialize Gmail API client
-- [ ] Implement email composition with attachment
-- [ ] Create MIME message builder
-- [ ] Handle base64 encoding
-- [ ] Send email via Gmail API
-- [ ] Handle send confirmation
-- [ ] Implement error handling
-- [ ] Add retry logic
-- [ ] Test with real Kindle
+- [x] Create `js/gmail.js`
+- [x] Initialize Gmail API client
+- [x] Implement email composition with attachment
+- [x] Create MIME message builder
+- [x] Handle base64 encoding
+- [x] Send email via Gmail API
+- [x] Handle send confirmation
+- [x] Implement error handling
+- [x] Add retry logic
+- [x] Test with real Kindle
 
 **Key Functions:**
 ```javascript
@@ -375,25 +376,26 @@ const CONFIG = {
 
 ---
 
-### **Task 3.5: AO3 Integration** 🔴
+### **Task 3.5: AO3 Integration** ✅
 **Priority:** P0  
 **Estimated Time:** 2 hours  
 **Dependencies:** Task 2.2  
-**Assignee:** Unassigned  
+**Assignee:** rheat  
+**Completed:** 2025-08-26  
 
 **Description:** Implement AO3 content fetching and processing.
 
 **Sub-tasks:**
-- [ ] Create `js/ao3.js`
-- [ ] Implement URL validation
-- [ ] Fetch page via CORS proxy
-- [ ] Parse HTML for download links
-- [ ] Extract metadata (title, author)
-- [ ] Download selected format
-- [ ] Convert to base64
-- [ ] Handle different work types
-- [ ] Add error handling
-- [ ] Cache responses (optional)
+- [x] Create `js/ao3.js`
+- [x] Implement URL validation
+- [x] Fetch page via CORS proxy
+- [x] Parse HTML for download links
+- [x] Extract metadata (title, author)
+- [x] Download selected format
+- [x] Convert to base64
+- [x] Handle different work types
+- [x] Add error handling
+- [x] Cache responses (optional)
 
 **Key Functions:**
 ```javascript
