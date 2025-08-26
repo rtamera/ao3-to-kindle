@@ -298,24 +298,25 @@ const CONFIG = {
 
 ---
 
-### **Task 3.3: Google OAuth Integration** 🟡
+### **Task 3.3: Google OAuth Integration** ✅
 **Priority:** P0  
 **Estimated Time:** 3 hours  
 **Dependencies:** Tasks 1.3, 2.3, 3.1  
-**Assignee:** Unassigned  
+**Assignee:** rheat  
+**Completed:** 2025-08-26  
 
 **Description:** Implement Google Sign-In and OAuth flow.
 
 **Sub-tasks:**
-- [ ] Create `js/auth.js`
-- [ ] Initialize Google Sign-In client
-- [ ] Implement sign-in callback
-- [ ] Handle authentication response
-- [ ] Store tokens securely (session only)
-- [ ] Implement sign-out functionality
-- [ ] Add token refresh logic
-- [ ] Handle auth errors
-- [ ] Update UI based on auth state
+- [x] Create `js/auth.js`
+- [x] Initialize Google Sign-In client
+- [x] Implement sign-in callback
+- [x] Handle authentication response
+- [x] Store tokens securely (session only)
+- [x] Implement sign-out functionality
+- [x] Add token refresh logic
+- [x] Handle auth errors
+- [x] Update UI based on auth state
 - [ ] Test with test account
 
 **Key Functions:**

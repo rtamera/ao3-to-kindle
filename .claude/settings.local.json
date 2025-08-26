@@ -3,7 +3,8 @@
     "allow": [
       "Bash(move PLANNING.md docs )",
       "Bash(move TASK.md docs )",
-      "Bash(move CLAUDE.md docs)"
+      "Bash(move CLAUDE.md docs)",
+      "Bash(python:*)"
     ],
     "deny": [],
     "ask": []

@@ -394,10 +394,21 @@ a:hover, a:focus {
   color: var(--error-red);
   font-weight: 500;
   display: none;
+  margin-top: var(--space-1);
 }
 
 .form-error.visible {
   display: block;
+}
+
+.form-input-error {
+  border-color: var(--error-red) !important;
+  box-shadow: 0 0 0 2px rgba(234, 67, 53, 0.2) !important;
+}
+
+.form-input-error:focus {
+  border-color: var(--error-red) !important;
+  box-shadow: 0 0 0 3px rgba(234, 67, 53, 0.3) !important;
 }
 
 /* =================================================================
