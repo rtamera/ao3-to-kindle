@@ -30,26 +30,8 @@ class AO3Manager {
    * Validate AO3 URL format
    */
   validateAO3Url(url) {
-    try {
-      const urlObj = new URL(url);
-      
-      // Check hostname
-      if (urlObj.hostname !== 'archiveofourown.org') {
-        return { valid: false, error: 'URL must be from archiveofourown.org' };
-      }
-      
-      // Check path pattern for works
-      const workMatch = urlObj.pathname.match(/^\/works\/(\d+)(?:\/chapters\/\d+)?(?:\?.*)?$/);
-      if (!workMatch) {
-        return { valid: false, error: 'URL must be a valid AO3 work URL' };
-      }
-      
-      const workId = workMatch[1];
-      return { valid: true, workId, originalUrl: url };
-      
-    } catch (error) {
-      return { valid: false, error: 'Invalid URL format' };
-    }
+    // Use the enhanced validation from utils
+    return window.utilsManager.validateAO3Url(url);
   }
 
   /**
@@ -83,7 +65,7 @@ class AO3Manager {
    * Fetch AO3 work page to extract metadata and download links
    */
   async fetchWorkPage(url) {
-    try {
+    const fetchFunction = async () => {
       console.log('Fetching AO3 work page:', url);
       
       if (!this.corsProxyUrl) {
@@ -92,18 +74,32 @@ class AO3Manager {
       
       // Use CORS proxy to fetch the work page
       const proxyUrl = `${this.corsProxyUrl}?url=${encodeURIComponent(url)}`;
-      const response = await fetch(proxyUrl);
+      
+      const response = await window.utilsManager.withTimeout(
+        fetch(proxyUrl),
+        15000 // 15 second timeout
+      );
       
       if (!response.ok) {
-        throw new Error(`Failed to fetch work page: ${response.status} ${response.statusText}`);
+        const error = new Error(`Failed to fetch work page: ${response.statusText}`);
+        error.status = response.status;
+        throw error;
       }
       
       const html = await response.text();
       return this.parseWorkPage(html, url);
-      
+    };
+
+    try {
+      return await window.utilsManager.retryRequest(fetchFunction, {
+        maxRetries: 2,
+        baseDelay: 2000, // Start with 2 seconds
+        maxDelay: 8000   // Cap at 8 seconds
+      });
     } catch (error) {
       console.error('Error fetching work page:', error);
-      throw new Error(`Failed to fetch AO3 work: ${error.message}`);
+      const classified = window.utilsManager.classifyError(error);
+      throw new Error(classified.userMessage);
     }
   }
 
@@ -184,19 +180,41 @@ class AO3Manager {
    * Download file from AO3 and convert to base64
    */
   async downloadFile(downloadUrl, format = 'mobi') {
-    try {
+    const downloadFunction = async () => {
       console.log('Downloading file:', downloadUrl);
       
       // Use CORS proxy to download the file
       const proxyUrl = `${this.corsProxyUrl}?url=${encodeURIComponent(downloadUrl)}`;
-      const response = await fetch(proxyUrl);
+      
+      const response = await window.utilsManager.withTimeout(
+        fetch(proxyUrl),
+        30000 // 30 second timeout for file downloads
+      );
       
       if (!response.ok) {
-        throw new Error(`Download failed: ${response.status} ${response.statusText}`);
+        const error = new Error(`Download failed: ${response.statusText}`);
+        error.status = response.status;
+        throw error;
+      }
+      
+      // Get content length to check file size before downloading
+      const contentLength = response.headers.get('content-length');
+      if (contentLength) {
+        const fileSize = parseInt(contentLength, 10);
+        if (!window.utilsManager.isFileSizeValid(fileSize, 25)) {
+          const formattedSize = window.utilsManager.formatFileSize(fileSize);
+          throw new Error(`File is too large (${formattedSize}). Gmail has a 25MB attachment limit. Try a different format like EPUB which is usually smaller.`);
+        }
       }
       
       // Get the file as array buffer
       const arrayBuffer = await response.arrayBuffer();
+      
+      // Double-check file size after download
+      if (!window.utilsManager.isFileSizeValid(arrayBuffer.byteLength, 25)) {
+        const formattedSize = window.utilsManager.formatFileSize(arrayBuffer.byteLength);
+        throw new Error(`File is too large (${formattedSize}). Gmail has a 25MB attachment limit. Try a different format like EPUB which is usually smaller.`);
+      }
       
       // Convert to base64
       const base64String = this.arrayBufferToBase64(arrayBuffer);
@@ -209,10 +227,24 @@ class AO3Manager {
         format: format,
         mimeType: this.getMimeType(format)
       };
-      
+    };
+
+    try {
+      return await window.utilsManager.retryRequest(downloadFunction, {
+        maxRetries: 2,
+        baseDelay: 3000, // Start with 3 seconds for file downloads
+        maxDelay: 10000  // Cap at 10 seconds
+      });
     } catch (error) {
       console.error('Error downloading file:', error);
-      throw new Error(`Failed to download file: ${error.message}`);
+      
+      // If it's already a user-friendly file size error, pass it through
+      if (error.message.includes('too large') || error.message.includes('25MB')) {
+        throw error;
+      }
+      
+      const classified = window.utilsManager.classifyError(error);
+      throw new Error(classified.userMessage);
     }
   }
 

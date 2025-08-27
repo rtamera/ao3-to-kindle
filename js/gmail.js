@@ -87,7 +87,7 @@ class GmailManager {
    * Send email via Gmail API
    */
   async sendEmail(to, subject, body, attachment = null) {
-    try {
+    const sendFunction = async () => {
       console.log('Preparing to send email to:', to);
       
       if (!this.isInitialized) {
@@ -95,12 +95,22 @@ class GmailManager {
       }
 
       if (!window.authManager || !window.authManager.isAuthenticated()) {
-        throw new Error('User not authenticated');
+        const error = new Error('User not authenticated');
+        error.status = 401;
+        throw error;
       }
 
-      // Get access token
-      const accessToken = await window.authManager.getAccessToken();
-      console.log('Using access token for Gmail API');
+      // Get access token (this handles refresh automatically)
+      let accessToken;
+      try {
+        accessToken = await window.authManager.getAccessToken();
+        console.log('Using access token for Gmail API');
+      } catch (authError) {
+        console.error('Failed to get access token:', authError);
+        const error = new Error('Authentication expired. Please sign in again.');
+        error.status = 401;
+        throw error;
+      }
       
       // Set the access token for gapi client
       this.gapi.client.setToken({ access_token: accessToken });
@@ -113,13 +123,16 @@ class GmailManager {
       
       console.log('Sending email via Gmail API...');
       
-      // Send the email
-      const response = await this.gapi.client.gmail.users.messages.send({
-        userId: 'me',
-        resource: {
-          raw: encodedMessage
-        }
-      });
+      // Send the email with timeout
+      const response = await window.utilsManager.withTimeout(
+        this.gapi.client.gmail.users.messages.send({
+          userId: 'me',
+          resource: {
+            raw: encodedMessage
+          }
+        }),
+        30000 // 30 second timeout
+      );
 
       if (response.status === 200) {
         console.log('Email sent successfully:', response.result);
@@ -129,12 +142,36 @@ class GmailManager {
           threadId: response.result.threadId
         };
       } else {
-        throw new Error(`Gmail API returned status: ${response.status}`);
+        const error = new Error(`Gmail API returned status: ${response.status}`);
+        error.status = response.status;
+        throw error;
       }
-      
+    };
+
+    try {
+      return await window.utilsManager.retryRequest(sendFunction, {
+        maxRetries: 2,
+        baseDelay: 2000,
+        maxDelay: 8000
+      });
     } catch (error) {
       console.error('Failed to send email:', error);
-      throw new Error(`Failed to send email: ${error.message}`);
+      
+      // Handle specific Gmail API errors
+      if (error.message && error.message.includes && error.message.includes('quotaExceeded')) {
+        throw new Error('Gmail sending quota exceeded. Please try again later.');
+      }
+      
+      if (error.status === 413) {
+        throw new Error('Email too large to send. The attachment may be too big for Gmail.');
+      }
+      
+      if (error.status === 401) {
+        throw new Error('Authentication expired. Please sign in again.');
+      }
+      
+      const classified = window.utilsManager.classifyError(error);
+      throw new Error(classified.userMessage);
     }
   }
 
@@ -202,21 +239,23 @@ class GmailManager {
    * Validate email address format
    */
   validateEmail(email) {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
+    const validation = window.utilsManager.validateEmail(email);
+    return validation.valid;
   }
 
   /**
    * Validate Kindle email address
    */
   validateKindleEmail(email) {
-    if (!this.validateEmail(email)) {
-      return false;
-    }
-    
-    // Check if it's a Kindle email domain
-    const kindleDomains = ['@kindle.com', '@free.kindle.com'];
-    return kindleDomains.some(domain => email.toLowerCase().endsWith(domain));
+    const validation = window.utilsManager.validateKindleEmail(email);
+    return validation.valid;
+  }
+
+  /**
+   * Get detailed validation result for Kindle email
+   */
+  validateKindleEmailDetailed(email) {
+    return window.utilsManager.validateKindleEmail(email);
   }
 }
 

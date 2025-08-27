@@ -225,17 +225,51 @@ class App {
       
       // Show user-friendly error messages
       let errorMessage = 'An error occurred. Please try again.';
+      let showRetryAdvice = true;
       
-      if (error.message.includes('CORS proxy')) {
+      // Check if error message is already user-friendly from our enhanced error handling
+      if (error.message && (
+          error.message.includes('Network connection error') ||
+          error.message.includes('File is too large') ||
+          error.message.includes('Authentication expired') ||
+          error.message.includes('Gmail sending quota') ||
+          error.message.includes('URL must be') ||
+          error.message.includes('Please enter a valid') ||
+          error.message.includes('server is experiencing') ||
+          error.message.includes('Try a different format')
+      )) {
+        errorMessage = error.message;
+        
+        // Don't show retry advice for validation errors or quota issues
+        if (error.message.includes('URL must be') || 
+            error.message.includes('Please enter a valid') ||
+            error.message.includes('quota')) {
+          showRetryAdvice = false;
+        }
+      }
+      // Fallback to legacy error detection for backward compatibility
+      else if (error.message.includes('CORS proxy')) {
         errorMessage = 'Unable to connect to AO3. Please check your internet connection and try again.';
       } else if (error.message.includes('Failed to fetch AO3')) {
         errorMessage = 'Could not fetch the story from AO3. Please check the URL and try again.';
       } else if (error.message.includes('too large')) {
         errorMessage = error.message; // File size error is already user-friendly
+        showRetryAdvice = false;
       } else if (error.message.includes('Gmail')) {
         errorMessage = 'Failed to send email. Please check your authentication and try again.';
       } else if (error.message.includes('URL must be')) {
         errorMessage = error.message; // URL validation errors are already user-friendly
+        showRetryAdvice = false;
+      }
+      
+      // Add retry advice for retryable errors
+      if (showRetryAdvice && (
+          error.message.includes('connection') ||
+          error.message.includes('timeout') ||
+          error.message.includes('server') ||
+          error.message.includes('unavailable')
+      )) {
+        errorMessage += ' If the problem persists, please wait a few minutes and try again.';
       }
       
       this.showStatus(errorMessage, 'error');
@@ -261,25 +295,31 @@ class App {
     if (!ao3Url) {
       this.showFieldError('ao3-url', 'AO3 URL is required');
       isValid = false;
-    } else if (!this.validateAO3Url(ao3Url)) {
-      this.showFieldError('ao3-url', 'Please enter a valid AO3 work URL');
-      isValid = false;
+    } else {
+      const urlValidation = window.ao3Manager.validateAO3Url(ao3Url);
+      if (!urlValidation.valid) {
+        this.showFieldError('ao3-url', urlValidation.error);
+        isValid = false;
+      }
     }
     
     // Validate Kindle email
     if (!kindleEmail) {
       this.showFieldError('kindle-email', 'Kindle email is required');
       isValid = false;
-    } else if (!window.gmailManager.validateKindleEmail(kindleEmail)) {
-      this.showFieldError('kindle-email', 'Please enter a valid Kindle email address (@kindle.com or @free.kindle.com)');
-      isValid = false;
+    } else {
+      const emailValidation = window.gmailManager.validateKindleEmailDetailed(kindleEmail);
+      if (!emailValidation.valid) {
+        this.showFieldError('kindle-email', emailValidation.error);
+        isValid = false;
+      }
     }
     
     return isValid;
   }
 
   /**
-   * Validate AO3 URL format
+   * Validate AO3 URL format (legacy method for compatibility)
    */
   validateAO3Url(url) {
     if (!window.ao3Manager) {

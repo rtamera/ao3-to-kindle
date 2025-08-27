@@ -62,7 +62,7 @@ class AuthManager {
   async waitForGoogleAPIs() {
     return new Promise((resolve, reject) => {
       const timeout = setTimeout(() => {
-        reject(new Error('Google APIs failed to load within timeout'));
+        reject(new Error('Google APIs failed to load within 10 seconds. Please check your internet connection and try refreshing the page.'));
       }, 10000);
 
       const checkAPIs = () => {
@@ -367,7 +367,16 @@ class AuthManager {
    */
   async refreshToken() {
     try {
-      const tokenResponse = await this.requestAccessToken();
+      console.log('Refreshing access token...');
+      
+      // Use retry logic for token refresh
+      const tokenResponse = await window.utilsManager.retryRequest(
+        () => this.requestAccessToken(),
+        {
+          maxRetries: 1, // Only retry once for auth
+          baseDelay: 1000
+        }
+      );
       
       if (tokenResponse && tokenResponse.access_token) {
         this.accessToken = tokenResponse.access_token;
@@ -378,13 +387,29 @@ class AuthManager {
         
         console.log('Token refreshed successfully');
       } else {
-        throw new Error('Failed to refresh token');
+        throw new Error('Failed to refresh token - no access token received');
       }
     } catch (error) {
       console.error('Token refresh failed:', error);
-      // Force re-authentication
-      await this.handleSignOut();
-      throw new Error('Authentication expired. Please sign in again.');
+      
+      // Classify the error
+      const classified = window.utilsManager.classifyError(error);
+      
+      // For auth errors, clear everything and require re-authentication
+      if (classified.type === 'auth_error' || error.message.includes('oauth') || error.message.includes('consent')) {
+        console.log('Auth error during refresh, clearing auth state');
+        this.clearAuthData();
+        this.notifyAuthStateChange(false, null);
+        
+        // Show user-friendly message
+        this.handleAuthError(error, 'Your session has expired. Please sign in again.');
+        throw new Error('Authentication expired. Please sign in again.');
+      }
+      
+      // For other errors, still clear auth but with different message
+      this.clearAuthData();
+      this.notifyAuthStateChange(false, null);
+      throw new Error('Failed to refresh authentication. Please sign in again.');
     }
   }
 
