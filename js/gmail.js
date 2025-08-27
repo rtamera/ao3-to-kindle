@@ -100,6 +100,10 @@ class GmailManager {
 
       // Get access token
       const accessToken = await window.authManager.getAccessToken();
+      console.log('Using access token for Gmail API');
+      
+      // Set the access token for gapi client
+      this.gapi.client.setToken({ access_token: accessToken });
       
       // Create MIME message
       const mimeMessage = this.createMimeMessage(to, subject, body, attachment);

@@ -13,6 +13,7 @@ class App {
     this.statusSection = null;
     
     this.isInitialized = false;
+    this.preferences = this.loadPreferences();
   }
 
   /* =================================================================
@@ -110,6 +111,9 @@ class App {
     // Clear any error messages
     this.clearStatus();
     
+    // Load user preferences into the form
+    this.loadFormPreferences();
+    
     console.log('UI updated to authenticated state');
   }
 
@@ -204,6 +208,9 @@ class App {
       
       // Step 4: Success!
       this.updateProgress('Success! Story sent to your Kindle.', 100);
+      
+      // Save user preferences for next time
+      this.saveFormPreferences();
       
       const fileSize = window.ao3Manager.formatFileSize(workData.file.size);
       this.showStatus(
@@ -427,6 +434,78 @@ class App {
     if (this.statusSection) {
       this.statusSection.hidden = true;
     }
+  }
+
+  /* =================================================================
+     User Preferences
+     ================================================================= */
+
+  /**
+   * Load user preferences from localStorage
+   */
+  loadPreferences() {
+    try {
+      const stored = localStorage.getItem('ao3_kindle_preferences');
+      const defaults = {
+        kindleEmail: '',
+        preferredFormat: 'mobi',
+        rememberEmail: true
+      };
+      
+      return stored ? { ...defaults, ...JSON.parse(stored) } : defaults;
+    } catch (error) {
+      console.warn('Failed to load preferences:', error);
+      return {
+        kindleEmail: '',
+        preferredFormat: 'mobi',
+        rememberEmail: true
+      };
+    }
+  }
+
+  /**
+   * Save user preferences to localStorage
+   */
+  savePreferences() {
+    try {
+      localStorage.setItem('ao3_kindle_preferences', JSON.stringify(this.preferences));
+    } catch (error) {
+      console.warn('Failed to save preferences:', error);
+    }
+  }
+
+  /**
+   * Update form with saved preferences
+   */
+  loadFormPreferences() {
+    const kindleEmailInput = document.getElementById('kindle-email');
+    const formatSelect = document.getElementById('format-select');
+    
+    if (kindleEmailInput && this.preferences.rememberEmail && this.preferences.kindleEmail) {
+      kindleEmailInput.value = this.preferences.kindleEmail;
+    }
+    
+    if (formatSelect && this.preferences.preferredFormat) {
+      formatSelect.value = this.preferences.preferredFormat;
+    }
+  }
+
+  /**
+   * Save form preferences after successful send
+   */
+  saveFormPreferences() {
+    const kindleEmailInput = document.getElementById('kindle-email');
+    const formatSelect = document.getElementById('format-select');
+    
+    if (kindleEmailInput && this.preferences.rememberEmail) {
+      this.preferences.kindleEmail = kindleEmailInput.value.trim();
+    }
+    
+    if (formatSelect) {
+      this.preferences.preferredFormat = formatSelect.value;
+    }
+    
+    this.savePreferences();
   }
 }
 

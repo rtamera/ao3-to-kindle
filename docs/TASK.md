@@ -3,6 +3,7 @@
 ## 📊 Task Tracking System
 
 ### **Status Legend**
+
 - 🔴 **Blocked** - Waiting on dependency or external factor
 - 🟡 **In Progress** - Currently being worked on
 - 🟢 **Ready** - Ready to start, all dependencies met
@@ -11,6 +12,7 @@
 - ⏸️ **On Hold** - Paused for strategic reasons
 
 ### **Priority Levels**
+
 - **P0** - Critical: Must have for MVP
 - **P1** - High: Important for launch
 - **P2** - Medium: Nice to have
@@ -21,6 +23,7 @@
 ## 🚀 Current Sprint: MVP Development (Week 1)
 
 ### **Sprint Goal**
+
 Complete core infrastructure and basic functionality to enable sending AO3 fanfics to Kindle via Gmail OAuth.
 
 ---
@@ -28,15 +31,17 @@ Complete core infrastructure and basic functionality to enable sending AO3 fanfi
 ## 📋 Phase 1: Google Cloud Setup (Day 1)
 
 ### **Task 1.1: Google Cloud Project Setup** ✅
+
 **Priority:** P0  
 **Estimated Time:** 30 minutes  
 **Dependencies:** None  
 **Assignee:** rheat  
-**Completed:** 2025-08-26  
+**Completed:** 2025-08-26
 
 **Description:** Set up Google Cloud Project and enable necessary APIs for OAuth2 and Gmail.
 
 **Sub-tasks:**
+
 - [x] Go to [Google Cloud Console](https://console.cloud.google.com)
 - [x] Create new project named "AO3-to-Kindle"
 - [x] Enable Gmail API
@@ -44,26 +49,30 @@ Complete core infrastructure and basic functionality to enable sending AO3 fanfi
 - [x] Note project ID for later use
 
 **Acceptance Criteria:**
+
 - Project created and accessible
 - Gmail API shows as enabled
 - Project ID documented
 
 **Notes:**
+
 - Use a Google account that will be the long-term owner
 - Consider creating a dedicated account for this project
 
 ---
 
 ### **Task 1.2: OAuth Consent Screen Configuration** ✅
+
 **Priority:** P0  
 **Estimated Time:** 45 minutes  
 **Dependencies:** Task 1.1  
 **Assignee:** rheat  
-**Completed:** 2025-08-26  
+**Completed:** 2025-08-26
 
 **Description:** Configure OAuth consent screen with appropriate scopes and information.
 
 **Sub-tasks:**
+
 - [x] Navigate to APIs & Services → OAuth consent screen
 - [x] Choose "External" user type
 - [x] Fill in application information:
@@ -75,27 +84,31 @@ Complete core infrastructure and basic functionality to enable sending AO3 fanfi
 - [x] Save and continue through all steps
 
 **Acceptance Criteria:**
+
 - Consent screen configured
 - Only gmail.send scope added
 - Test users added
 - Status shows as "Testing"
 
 **Notes:**
+
 - Start with "Testing" mode (100 user limit)
 - Can submit for verification later
 
 ---
 
 ### **Task 1.3: OAuth Client ID Creation** ✅
+
 **Priority:** P0  
 **Estimated Time:** 20 minutes  
 **Dependencies:** Task 1.2  
 **Assignee:** rtamera  
-**Completed:** 2025-08-26  
+**Completed:** 2025-08-26
 
 **Description:** Create OAuth 2.0 Client ID for web application.
 
 **Sub-tasks:**
+
 - [x] Go to APIs & Services → Credentials
 - [x] Click "Create Credentials" → OAuth client ID
 - [x] Application type: Web application
@@ -109,16 +122,18 @@ Complete core infrastructure and basic functionality to enable sending AO3 fanfi
 - [x] Save and download credentials
 
 **Acceptance Criteria:**
-- Client ID created
+
+- Client ID **created**
 - Origins and redirects configured
 - Client ID saved in secure location
 - Credentials JSON downloaded
 
 **Output Required:**
+
 ```javascript
 // Save these for Task 2.3
-const CLIENT_ID = 'xxxxxx.apps.googleusercontent.com';
-const API_KEY = 'your-api-key'; // Optional but recommended
+const CLIENT_ID = "xxxxxx.apps.googleusercontent.com";
+const API_KEY = "your-api-key"; // Optional but recommended
 ```
 
 ---
@@ -126,15 +141,17 @@ const API_KEY = 'your-api-key'; // Optional but recommended
 ## 📋 Phase 2: Infrastructure Setup (Day 1-2)
 
 ### **Task 2.1: GitHub Repository Setup** ✅
+
 **Priority:** P0  
 **Estimated Time:** 15 minutes  
 **Dependencies:** None  
 **Assignee:** rheat  
-**Completed:** 2025-08-26  
+**Completed:** 2025-08-26
 
 **Description:** Create and configure GitHub repository for the project.
 
 **Sub-tasks:**
+
 - [x] Create new public repository "ao3-to-kindle"
 - [x] Initialize with README
 - [ ] Add MIT license
@@ -143,6 +160,7 @@ const API_KEY = 'your-api-key'; // Optional but recommended
 - [x] Add `.gitignore` for config files
 
 **Acceptance Criteria:**
+
 - Repository accessible
 - GitHub Pages enabled
 - Basic structure created
@@ -151,15 +169,17 @@ const API_KEY = 'your-api-key'; // Optional but recommended
 ---
 
 ### **Task 2.2: Cloudflare Worker Setup** ✅
+
 **Priority:** P0  
 **Estimated Time:** 30 minutes  
 **Dependencies:** None  
 **Assignee:** rheat  
-**Completed:** 2025-08-26  
+**Completed:** 2025-08-26
 
 **Description:** Create CORS proxy worker for fetching AO3 content.
 
 **Sub-tasks:**
+
 - [x] Sign up for Cloudflare account (free)
 - [x] Go to Workers & Pages
 - [x] Create new Worker: "ao3-cors-proxy"
@@ -172,33 +192,37 @@ const API_KEY = 'your-api-key'; // Optional but recommended
 - [x] Deploy and get worker URL
 
 **Acceptance Criteria:**
+
 - Worker deployed and accessible
 - Successfully proxies AO3 content
 - CORS headers properly set
 - Returns download links correctly
 
 **Code Template:**
+
 ```javascript
 // Basic structure for worker.js
 export default {
   async fetch(request) {
     // Implementation here
-  }
-}
+  },
+};
 ```
 
 ---
 
 ### **Task 2.3: Project Configuration** ✅
+
 **Priority:** P0  
 **Estimated Time:** 15 minutes  
 **Dependencies:** Tasks 1.3, 2.1, 2.2  
 **Assignee:** rheat  
-**Completed:** 2025-08-26  
+**Completed:** 2025-08-26
 
 **Description:** Create configuration file with all service credentials.
 
 **Sub-tasks:**
+
 - [x] Create `js/config.js` file
 - [x] Add Google Client ID
 - [x] Add Cloudflare Worker URL
@@ -206,17 +230,19 @@ export default {
 - [x] Ensure config.js is in .gitignore
 
 **Template:**
+
 ```javascript
 // js/config.js
 const CONFIG = {
-  GOOGLE_CLIENT_ID: 'from-task-1.3',
-  GOOGLE_API_KEY: 'optional-but-recommended',
-  CORS_PROXY_URL: 'from-task-2.2',
-  KINDLE_EMAIL_DOMAIN: '@kindle.com'
+  GOOGLE_CLIENT_ID: "from-task-1.3",
+  GOOGLE_API_KEY: "optional-but-recommended",
+  CORS_PROXY_URL: "from-task-2.2",
+  KINDLE_EMAIL_DOMAIN: "@kindle.com",
 };
 ```
 
 **Acceptance Criteria:**
+
 - Configuration file created
 - All credentials added
 - File excluded from git
@@ -226,15 +252,17 @@ const CONFIG = {
 ## 📋 Phase 3: Core Development (Day 2-3)
 
 ### **Task 3.1: HTML Structure** ✅
+
 **Priority:** P0  
 **Estimated Time:** 1 hour  
 **Dependencies:** Task 2.1  
 **Assignee:** rheat  
-**Completed:** 2025-08-26  
+**Completed:** 2025-08-26
 
 **Description:** Create main HTML structure with semantic markup.
 
 **Sub-tasks:**
+
 - [x] Create `index.html`
 - [x] Add meta tags (viewport, SEO)
 - [x] Include Google API scripts
@@ -247,6 +275,7 @@ const CONFIG = {
 - [x] Add accessibility attributes
 
 **Key Elements:**
+
 - Google Sign-In div
 - AO3 URL input
 - Kindle email input
@@ -255,6 +284,7 @@ const CONFIG = {
 - Status display
 
 **Acceptance Criteria:**
+
 - Valid HTML5 structure
 - Mobile responsive meta tags
 - Google scripts loaded
@@ -263,15 +293,17 @@ const CONFIG = {
 ---
 
 ### **Task 3.2: CSS Styling** ✅
+
 **Priority:** P1  
 **Estimated Time:** 2 hours  
 **Dependencies:** Task 3.1  
 **Assignee:** rheat  
-**Completed:** 2025-08-26  
+**Completed:** 2025-08-26
 
 **Description:** Create responsive, mobile-first styling.
 
 **Sub-tasks:**
+
 - [x] Create `css/styles.css`
 - [x] Implement CSS reset/normalize
 - [x] Design mobile-first layouts
@@ -284,6 +316,7 @@ const CONFIG = {
 - [x] Ensure touch-friendly targets
 
 **Design Requirements:**
+
 - Mobile-first approach
 - Minimum 48px touch targets
 - Clear visual hierarchy
@@ -291,6 +324,7 @@ const CONFIG = {
 - Error/success states
 
 **Acceptance Criteria:**
+
 - Fully responsive design
 - Works on mobile devices
 - Accessible color contrast
@@ -299,15 +333,17 @@ const CONFIG = {
 ---
 
 ### **Task 3.3: Google OAuth Integration** ✅
+
 **Priority:** P0  
 **Estimated Time:** 3 hours  
 **Dependencies:** Tasks 1.3, 2.3, 3.1  
 **Assignee:** rheat  
-**Completed:** 2025-08-26  
+**Completed:** 2025-08-26
 
 **Description:** Implement Google Sign-In and OAuth flow.
 
 **Sub-tasks:**
+
 - [x] Create `js/auth.js`
 - [x] Initialize Google Sign-In client
 - [x] Implement sign-in callback
@@ -320,16 +356,18 @@ const CONFIG = {
 - [x] Test with test account
 
 **Key Functions:**
+
 ```javascript
 // Required functions
-- initGoogleAuth()
-- handleSignIn()
-- handleSignOut()
-- isAuthenticated()
-- refreshToken()
+-initGoogleAuth() -
+  handleSignIn() -
+  handleSignOut() -
+  isAuthenticated() -
+  refreshToken();
 ```
 
 **Acceptance Criteria:**
+
 - Users can sign in with Google
 - gmail.send scope granted
 - Token stored in session
@@ -339,15 +377,17 @@ const CONFIG = {
 ---
 
 ### **Task 3.4: Gmail API Integration** ✅
+
 **Priority:** P0  
 **Estimated Time:** 3 hours  
 **Dependencies:** Task 3.3  
 **Assignee:** rheat  
-**Completed:** 2025-08-26  
+**Completed:** 2025-08-26
 
 **Description:** Implement Gmail API for sending emails with attachments.
 
 **Sub-tasks:**
+
 - [x] Create `js/gmail.js`
 - [x] Initialize Gmail API client
 - [x] Implement email composition with attachment
@@ -360,15 +400,14 @@ const CONFIG = {
 - [x] Test with real Kindle
 
 **Key Functions:**
+
 ```javascript
 // Required functions
-- initGmailClient()
-- createMimeMessage()
-- attachFile()
-- sendEmail()
+-initGmailClient() - createMimeMessage() - attachFile() - sendEmail();
 ```
 
 **Acceptance Criteria:**
+
 - Can send emails via Gmail API
 - Attachments work correctly
 - "Convert" subject line included
@@ -377,15 +416,17 @@ const CONFIG = {
 ---
 
 ### **Task 3.5: AO3 Integration** ✅
+
 **Priority:** P0  
 **Estimated Time:** 2 hours  
 **Dependencies:** Task 2.2  
 **Assignee:** rheat  
-**Completed:** 2025-08-26  
+**Completed:** 2025-08-26
 
 **Description:** Implement AO3 content fetching and processing.
 
 **Sub-tasks:**
+
 - [x] Create `js/ao3.js`
 - [x] Implement URL validation
 - [x] Fetch page via CORS proxy
@@ -398,16 +439,18 @@ const CONFIG = {
 - [x] Cache responses (optional)
 
 **Key Functions:**
+
 ```javascript
 // Required functions
-- validateAO3Url()
-- fetchWork()
-- extractDownloadLinks()
-- downloadFile()
-- getMetadata()
+-validateAO3Url() -
+  fetchWork() -
+  extractDownloadLinks() -
+  downloadFile() -
+  getMetadata();
 ```
 
 **Acceptance Criteria:**
+
 - Valid AO3 URLs accepted
 - Download links extracted
 - Files downloaded successfully
@@ -417,27 +460,32 @@ const CONFIG = {
 
 ## 📋 Phase 4: Integration & Polish (Day 4-5)
 
-### **Task 4.1: Main Application Logic** 🔴
+### **Task 4.1: Main Application Logic** ✅
+
 **Priority:** P0  
 **Estimated Time:** 2 hours  
 **Dependencies:** Tasks 3.3, 3.4, 3.5  
-**Assignee:** Unassigned  
+**Assignee:** rheat  
+**Completed:** 2025-08-27
 
 **Description:** Wire together all components into working application.
 
 **Sub-tasks:**
-- [ ] Create `js/app.js`
-- [ ] Initialize all modules
-- [ ] Implement main send flow
-- [ ] Add form validation
-- [ ] Handle status updates
-- [ ] Implement error recovery
-- [ ] Add loading states
-- [ ] Store user preferences
-- [ ] Add keyboard shortcuts
-- [ ] Test complete flow
+
+- [x] Create `js/app.js`
+- [x] Initialize all modules
+- [x] Implement main send flow
+- [x] Add form validation
+- [x] Handle status updates
+- [x] Implement error recovery
+- [x] Add loading states
+- [x] Store user preferences
+- [x] Create config.js file
+- [ ] Add keyboard shortcuts (optional)
+- [x] Test complete flow
 
 **Core Flow:**
+
 1. Check authentication
 2. Validate inputs
 3. Fetch AO3 content
@@ -446,6 +494,7 @@ const CONFIG = {
 6. Show confirmation
 
 **Acceptance Criteria:**
+
 - Complete flow works end-to-end
 - Proper error handling
 - Clear user feedback
@@ -454,14 +503,16 @@ const CONFIG = {
 ---
 
 ### **Task 4.2: Error Handling & Edge Cases** 🔴
+
 **Priority:** P0  
 **Estimated Time:** 2 hours  
 **Dependencies:** Task 4.1  
-**Assignee:** Unassigned  
+**Assignee:** Unassigned
 
 **Description:** Handle all error cases gracefully.
 
 **Sub-tasks:**
+
 - [ ] Network error handling
 - [ ] Invalid URL handling
 - [ ] Large file handling (>25MB)
@@ -474,6 +525,7 @@ const CONFIG = {
 - [ ] Fallback instructions
 
 **Test Cases:**
+
 - Invalid AO3 URL
 - Network disconnection
 - Expired token
@@ -483,6 +535,7 @@ const CONFIG = {
 - Gmail quota exceeded
 
 **Acceptance Criteria:**
+
 - All errors handled gracefully
 - Clear messages to users
 - Recovery options provided
@@ -490,14 +543,16 @@ const CONFIG = {
 ---
 
 ### **Task 4.3: Mobile Optimization** 🔴
+
 **Priority:** P0  
 **Estimated Time:** 2 hours  
 **Dependencies:** Task 4.1  
-**Assignee:** Unassigned  
+**Assignee:** Unassigned
 
 **Description:** Ensure perfect mobile experience.
 
 **Sub-tasks:**
+
 - [ ] Test on real mobile devices
 - [ ] Optimize touch targets
 - [ ] Fix any viewport issues
@@ -510,12 +565,14 @@ const CONFIG = {
 - [ ] Test on iOS and Android
 
 **Devices to Test:**
+
 - iPhone (Safari)
 - Android (Chrome)
 - iPad
 - Small phones (<375px)
 
 **Acceptance Criteria:**
+
 - Works smoothly on mobile
 - Easy to use with touch
 - OAuth works on mobile browsers
@@ -526,14 +583,16 @@ const CONFIG = {
 ## 📋 Phase 5: Documentation & Legal (Day 5-6)
 
 ### **Task 5.1: Privacy Policy** 🟢
+
 **Priority:** P0  
 **Estimated Time:** 1 hour  
 **Dependencies:** None  
-**Assignee:** Unassigned  
+**Assignee:** Unassigned
 
 **Description:** Create privacy policy required for Google OAuth.
 
 **Sub-tasks:**
+
 - [ ] Create `privacy.html`
 - [ ] Explain data handling (none stored)
 - [ ] Explain Google OAuth usage
@@ -544,6 +603,7 @@ const CONFIG = {
 - [ ] Link from main page
 
 **Key Points to Cover:**
+
 - No data storage
 - Gmail access limited to sending
 - No tracking or analytics
@@ -551,6 +611,7 @@ const CONFIG = {
 - How to revoke access
 
 **Acceptance Criteria:**
+
 - Comprehensive privacy policy
 - Linked from main page
 - Meets Google requirements
@@ -558,14 +619,16 @@ const CONFIG = {
 ---
 
 ### **Task 5.2: Terms of Service** 🟢
+
 **Priority:** P0  
 **Estimated Time:** 1 hour  
 **Dependencies:** None  
-**Assignee:** Unassigned  
+**Assignee:** Unassigned
 
 **Description:** Create terms of service document.
 
 **Sub-tasks:**
+
 - [ ] Create `terms.html`
 - [ ] Define service usage
 - [ ] Disclaimer of warranties
@@ -576,6 +639,7 @@ const CONFIG = {
 - [ ] Link from main page
 
 **Acceptance Criteria:**
+
 - Complete terms of service
 - Legally sound (use templates)
 - Linked from main page
@@ -583,14 +647,16 @@ const CONFIG = {
 ---
 
 ### **Task 5.3: User Documentation** 🔴
+
 **Priority:** P1  
 **Estimated Time:** 2 hours  
 **Dependencies:** Task 4.1  
-**Assignee:** Unassigned  
+**Assignee:** Unassigned
 
 **Description:** Create comprehensive user documentation.
 
 **Sub-tasks:**
+
 - [ ] Update README.md
 - [ ] Create setup instructions
 - [ ] Add FAQ section
@@ -602,6 +668,7 @@ const CONFIG = {
 - [ ] Add support contact
 
 **Sections Needed:**
+
 - How to use
 - First-time setup
 - Finding Kindle email
@@ -609,6 +676,7 @@ const CONFIG = {
 - FAQ
 
 **Acceptance Criteria:**
+
 - Clear instructions
 - Screenshots included
 - Common issues addressed
@@ -619,6 +687,7 @@ const CONFIG = {
 ## 📋 Phase 6: Testing & Launch Prep (Day 6-7)
 
 ### **Task 6.1: Comprehensive Testing** 🔴
+
 **Priority:** P0  
 **Estimated Time:** 3 hours  
 **Dependencies:** All Phase 1-5 tasks  
@@ -627,6 +696,7 @@ const CONFIG = {
 **Description:** Test all functionality across devices and scenarios.
 
 **Sub-tasks:**
+
 - [ ] Test complete flow on Chrome desktop
 - [ ] Test complete flow on Safari desktop
 - [ ] Test complete flow on Firefox desktop
@@ -654,6 +724,7 @@ const CONFIG = {
 | Android | Chrome | [ ] | [ ] | [ ] | [ ] |
 
 **Acceptance Criteria:**
+
 - Works on all major browsers
 - Mobile experience smooth
 - Files arrive on Kindle
@@ -662,6 +733,7 @@ const CONFIG = {
 ---
 
 ### **Task 6.2: Performance Optimization** 🔴
+
 **Priority:** P1  
 **Estimated Time:** 2 hours  
 **Dependencies:** Task 6.1  
@@ -670,6 +742,7 @@ const CONFIG = {
 **Description:** Optimize performance for better user experience.
 
 **Sub-tasks:**
+
 - [ ] Minimize CSS file
 - [ ] Minimize JavaScript files
 - [ ] Optimize loading order
@@ -682,12 +755,14 @@ const CONFIG = {
 - [ ] Compress images (if any)
 
 **Performance Targets:**
+
 - First Contentful Paint < 1.5s
 - Time to Interactive < 3s
 - Lighthouse score > 90
 - Works on slow 3G
 
 **Acceptance Criteria:**
+
 - Meets performance targets
 - Smooth on slow connections
 - Lighthouse audit passed
@@ -695,6 +770,7 @@ const CONFIG = {
 ---
 
 ### **Task 6.3: Security Audit** 🔴
+
 **Priority:** P0  
 **Estimated Time:** 1 hour  
 **Dependencies:** Task 6.1  
@@ -703,6 +779,7 @@ const CONFIG = {
 **Description:** Ensure security best practices are followed.
 
 **Sub-tasks:**
+
 - [ ] Verify no credentials in code
 - [ ] Check for XSS vulnerabilities
 - [ ] Validate all user inputs
@@ -715,6 +792,7 @@ const CONFIG = {
 - [ ] Test injection attacks
 
 **Security Checklist:**
+
 - [ ] No API keys in public code
 - [ ] Input validation implemented
 - [ ] XSS prevention in place
@@ -722,6 +800,7 @@ const CONFIG = {
 - [ ] Minimal OAuth scopes
 
 **Acceptance Criteria:**
+
 - No security vulnerabilities
 - Credentials properly secured
 - Safe from common attacks
@@ -729,6 +808,7 @@ const CONFIG = {
 ---
 
 ### **Task 6.4: Alpha User Testing** 🔴
+
 **Priority:** P1  
 **Estimated Time:** 2 days  
 **Dependencies:** Task 6.1  
@@ -737,6 +817,7 @@ const CONFIG = {
 **Description:** Get feedback from initial test users.
 
 **Sub-tasks:**
+
 - [ ] Recruit 5-10 test users
 - [ ] Add them to Google OAuth test users
 - [ ] Create feedback form
@@ -749,6 +830,7 @@ const CONFIG = {
 - [ ] Thank testers
 
 **Feedback Areas:**
+
 - Ease of setup
 - Clarity of instructions
 - Mobile experience
@@ -756,6 +838,7 @@ const CONFIG = {
 - Overall satisfaction
 
 **Acceptance Criteria:**
+
 - At least 5 users tested
 - Feedback collected
 - Critical issues fixed
@@ -766,6 +849,7 @@ const CONFIG = {
 ## 📋 Phase 7: Google OAuth Verification (Week 2)
 
 ### **Task 7.1: Prepare for Verification** 🟢
+
 **Priority:** P0  
 **Estimated Time:** 2 hours  
 **Dependencies:** All Phase 1-6 tasks  
@@ -774,6 +858,7 @@ const CONFIG = {
 **Description:** Prepare all requirements for Google OAuth verification.
 
 **Sub-tasks:**
+
 - [ ] Ensure privacy policy is comprehensive
 - [ ] Ensure terms of service is complete
 - [ ] Create app demo video
@@ -786,6 +871,7 @@ const CONFIG = {
 - [ ] Prepare justification for gmail.send
 
 **Verification Requirements:**
+
 - Privacy policy URL
 - Terms of service URL
 - Authorized domains verified
@@ -793,6 +879,7 @@ const CONFIG = {
 - Justification for scopes
 
 **Acceptance Criteria:**
+
 - All requirements met
 - Documentation ready
 - Demo video created
@@ -800,6 +887,7 @@ const CONFIG = {
 ---
 
 ### **Task 7.2: Submit for Verification** 🔴
+
 **Priority:** P0  
 **Estimated Time:** 1 hour  
 **Dependencies:** Task 7.1  
@@ -808,6 +896,7 @@ const CONFIG = {
 **Description:** Submit OAuth consent screen for Google verification.
 
 **Sub-tasks:**
+
 - [ ] Go to OAuth consent screen
 - [ ] Click "Publish App"
 - [ ] Fill verification form
@@ -819,11 +908,13 @@ const CONFIG = {
 - [ ] Track verification status
 
 **Expected Timeline:**
+
 - Initial review: 2-3 days
 - Questions/clarifications: 1 week
 - Final approval: 2-6 weeks
 
 **Acceptance Criteria:**
+
 - Verification submitted
 - Confirmation received
 - Case number documented
@@ -833,6 +924,7 @@ const CONFIG = {
 ## 📋 Phase 8: Production Launch (Week 3+)
 
 ### **Task 8.1: Production Deployment** 🔴
+
 **Priority:** P0  
 **Estimated Time:** 1 hour  
 **Dependencies:** Task 7.2 approval  
@@ -841,6 +933,7 @@ const CONFIG = {
 **Description:** Deploy to production with verified OAuth.
 
 **Sub-tasks:**
+
 - [ ] Update OAuth to production mode
 - [ ] Remove test user restrictions
 - [ ] Update any staging URLs
@@ -851,6 +944,7 @@ const CONFIG = {
 - [ ] Be ready to respond
 
 **Acceptance Criteria:**
+
 - App in production mode
 - Anyone can sign in
 - All features working
@@ -858,6 +952,7 @@ const CONFIG = {
 ---
 
 ### **Task 8.2: Launch Announcement** 🔴
+
 **Priority:** P1  
 **Estimated Time:** 2 hours  
 **Dependencies:** Task 8.1  
@@ -866,6 +961,7 @@ const CONFIG = {
 **Description:** Announce launch to target communities.
 
 **Sub-tasks:**
+
 - [ ] Create launch post
 - [ ] Post on relevant subreddits
 - [ ] Share on Twitter/X
@@ -876,6 +972,7 @@ const CONFIG = {
 - [ ] Update GitHub README
 
 **Communities to Target:**
+
 - r/AO3
 - r/fanfiction
 - r/kindle
@@ -883,6 +980,7 @@ const CONFIG = {
 - Fanfiction Discord servers
 
 **Acceptance Criteria:**
+
 - Posted in 5+ communities
 - Positive initial reception
 - No major issues reported
@@ -894,61 +992,71 @@ const CONFIG = {
 ### **Enhancement Tasks (P2)**
 
 #### **Task B1: Remember User Preferences**
+
 - Store Kindle email in localStorage
 - Remember format preference
 - Remember last used settings
 - One-click resend
 
 #### **Task B2: Batch Sending**
+
 - Send multiple fics at once
 - Queue system
 - Progress indicator
 - Batch status tracking
 
 #### **Task B3: Series Support**
+
 - Detect series URLs
 - Option to send all works
 - Combine into single file
 - Series metadata
 
 #### **Task B4: Format Auto-Detection**
+
 - Detect Kindle model from email
 - Suggest best format
 - Explain format differences
 - Smart defaults
 
 #### **Task B5: Dark Mode**
+
 - CSS custom properties
 - System preference detection
 - Manual toggle
 - Persist preference
 
 #### **Task B6: Progressive Web App**
+
 - Create manifest.json
 - Add service worker
 - Offline capability
 - Install prompts
 
 #### **Task B7: Browser Extension**
+
 - Chrome extension version
 - Firefox add-on
 - Direct AO3 integration
 - Context menu options
 
 #### **Task B8: Analytics (Privacy-Friendly)**
+
 - Simple counter only
 - No user tracking
 - Public stats page
 - Respect DNT
 
 ### **Bug Fixes & Issues**
-*To be populated as issues arise*
+
+_To be populated as issues arise_
 
 ---
 
 ## 📊 Velocity Tracking
 
 ### **Week 1 Target**
+
 - Phase 1: ✅ Google Cloud Setup
 - Phase 2: ✅ Infrastructure
 - Phase 3: ✅ Core Development
@@ -957,12 +1065,14 @@ const CONFIG = {
 - Phase 6: ⏳ Testing
 
 ### **Week 2 Target**
+
 - Phase 6: ✅ Testing completion
 - Phase 7: ✅ OAuth verification submission
 - Bug fixes and polish
 - Alpha user feedback incorporation
 
 ### **Week 3+ Target**
+
 - Verification approval (external dependency)
 - Production launch
 - Community outreach
@@ -973,28 +1083,33 @@ const CONFIG = {
 ## 📝 Notes & Decisions
 
 ### **Technical Decisions Made**
+
 - ✅ Use Gmail OAuth over Brevo (scalability)
 - ✅ Vanilla JS over framework (simplicity)
 - ✅ GitHub Pages over other hosting (free, reliable)
 - ✅ Session storage over localStorage for tokens (security)
 
 ### **Open Questions**
+
 - [ ] Should we add download-only option?
 - [ ] Include social sharing buttons?
 - [ ] Add donation link?
 - [ ] Create Discord for support?
 
 ### **Lessons Learned**
-*To be updated during development*
+
+_To be updated during development_
 
 ### **Known Issues**
-*To be populated as discovered*
+
+_To be populated as discovered_
 
 ---
 
 ## 🎯 Success Metrics
 
 ### **MVP Success Criteria**
+
 - [ ] 10 successful test users
 - [ ] Works on mobile (primary use case)
 - [ ] OAuth verification submitted
@@ -1003,6 +1118,7 @@ const CONFIG = {
 - [ ] No critical bugs
 
 ### **Launch Success Criteria**
+
 - [ ] 100 users in first week
 - [ ] 95% success rate
 - [ ] Positive community feedback
@@ -1013,25 +1129,27 @@ const CONFIG = {
 
 ## 🚦 Risk Register
 
-| Risk | Impact | Likelihood | Mitigation | Status |
-|------|--------|------------|------------|--------|
-| OAuth verification denied | High | Low | Follow guidelines carefully | Monitoring |
-| AO3 blocks proxy | High | Medium | Multiple proxy strategies | Planning |
-| User adoption slow | Medium | Medium | Marketing plan | Planning |
-| Gmail API changes | High | Low | Monitor announcements | Monitoring |
-| Scale issues | Low | Low | Architecture handles scale | Resolved |
+| Risk                      | Impact | Likelihood | Mitigation                  | Status     |
+| ------------------------- | ------ | ---------- | --------------------------- | ---------- |
+| OAuth verification denied | High   | Low        | Follow guidelines carefully | Monitoring |
+| AO3 blocks proxy          | High   | Medium     | Multiple proxy strategies   | Planning   |
+| User adoption slow        | Medium | Medium     | Marketing plan              | Planning   |
+| Gmail API changes         | High   | Low        | Monitor announcements       | Monitoring |
+| Scale issues              | Low    | Low        | Architecture handles scale  | Resolved   |
 
 ---
 
 ## 📞 Support Plan
 
 ### **Support Channels**
+
 - GitHub Issues (primary)
 - Email support (secondary)
 - FAQ page (self-service)
 - Video tutorials (self-service)
 
 ### **Response Times**
+
 - Critical bugs: Same day
 - Feature requests: Weekly review
 - Questions: 48 hours
@@ -1041,6 +1159,7 @@ const CONFIG = {
 ## ✅ Definition of Done Checklist
 
 ### **For Each Task:**
+
 - [ ] Code complete
 - [ ] Tested on mobile
 - [ ] Error handling added
@@ -1049,6 +1168,7 @@ const CONFIG = {
 - [ ] Merged to main branch
 
 ### **For MVP:**
+
 - [ ] All P0 tasks complete
 - [ ] Tested on 5+ devices
 - [ ] OAuth verification submitted
@@ -1058,6 +1178,6 @@ const CONFIG = {
 
 ---
 
-*Last Updated: [Current Date]*  
-*Sprint: MVP Development*  
-*Status: Ready to Begin*
+_Last Updated: [Current Date]_  
+_Sprint: MVP Development_  
+_Status: Ready to Begin_
