@@ -81,8 +81,23 @@ class AO3Manager {
       );
       
       if (!response.ok) {
-        const error = new Error(`Failed to fetch work page: ${response.statusText}`);
+        // Try to parse JSON error response from Worker
+        let errorMessage = `Failed to fetch work page: ${response.statusText}`;
+        let errorResponse = null;
+        
+        try {
+          const contentType = response.headers.get('content-type') || '';
+          if (contentType.includes('application/json')) {
+            errorResponse = await response.json();
+            errorMessage = errorResponse.error || errorMessage;
+          }
+        } catch (e) {
+          // Fallback to status text if JSON parsing fails
+        }
+        
+        const error = new Error(errorMessage);
         error.status = response.status;
+        error.response = errorResponse;
         throw error;
       }
       
@@ -192,8 +207,23 @@ class AO3Manager {
       );
       
       if (!response.ok) {
-        const error = new Error(`Download failed: ${response.statusText}`);
+        // Try to parse JSON error response from Worker
+        let errorMessage = `Download failed: ${response.statusText}`;
+        let errorResponse = null;
+        
+        try {
+          const contentType = response.headers.get('content-type') || '';
+          if (contentType.includes('application/json')) {
+            errorResponse = await response.json();
+            errorMessage = errorResponse.error || errorMessage;
+          }
+        } catch (e) {
+          // Fallback to status text if JSON parsing fails
+        }
+        
+        const error = new Error(errorMessage);
         error.status = response.status;
+        error.response = errorResponse;
         throw error;
       }
       

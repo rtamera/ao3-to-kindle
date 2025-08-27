@@ -128,6 +128,16 @@ class UtilsManager {
   classifyError(error) {
     const message = error.message || '';
     const status = error.status || error.code || 0;
+    
+    // Handle JSON error responses from Worker
+    if (error.response && typeof error.response === 'object') {
+      return {
+        type: error.response.type || 'worker_error',
+        userMessage: error.response.error || message,
+        isRetryable: error.response.type === 'rate_limit_error' || error.response.type === 'timeout_error',
+        retryAfter: error.response.retryAfter ? parseInt(error.response.retryAfter) * 1000 : null
+      };
+    }
 
     // Network errors
     if (message.includes('fetch') || message.includes('NetworkError') || message.includes('Failed to fetch')) {
