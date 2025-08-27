@@ -122,13 +122,17 @@ class AuthManager {
   renderSignInButton() {
     const buttonContainer = document.querySelector('.g_id_signin');
     if (buttonContainer && CONFIG.GOOGLE_CLIENT_ID) {
+      // Detect mobile for optimal button configuration
+      const isMobile = window.innerWidth <= 640 || /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      
       this.google.accounts.id.renderButton(buttonContainer, {
         type: 'standard',
-        size: 'large',
+        size: isMobile ? 'large' : 'large',
         theme: 'outline',
         text: 'sign_in_with',
         shape: 'rectangular',
         logo_alignment: 'left',
+        width: isMobile ? Math.min(buttonContainer.offsetWidth - 32, 400) : 400,
       });
     }
   }

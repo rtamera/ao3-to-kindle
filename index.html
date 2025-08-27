@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
     <meta name="description" content="Send AO3 fanfiction directly to your Kindle device using your Gmail account. Free, secure, and mobile-friendly.">
     <meta name="keywords" content="AO3, Archive of Our Own, Kindle, fanfiction, Gmail, ebook">
     <meta name="author" content="AO3 to Kindle Service">
@@ -24,8 +24,27 @@
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
     
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- iOS Web App Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="AO3 to Kindle">
+    <link rel="apple-touch-icon" href="assets/icon-180x180.png">
+    
+    <!-- Android/Chrome Meta Tags -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#4285F4">
+    
     <!-- Styles -->
     <link rel="stylesheet" href="css/styles.css">
+    
+    <!-- Resource hints for performance -->
+    <link rel="preconnect" href="https://accounts.google.com">
+    <link rel="preconnect" href="https://apis.google.com">
+    <link rel="dns-prefetch" href="https://oauth2.googleapis.com">
+    <link rel="dns-prefetch" href="https://www.googleapis.com">
     
     <!-- Google API Scripts -->
     <script src="https://accounts.google.com/gsi/client" defer></script>

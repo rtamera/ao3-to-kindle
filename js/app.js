@@ -62,6 +62,59 @@ class App {
     
     // Auth error listener
     document.addEventListener('authError', this.handleAuthError.bind(this));
+    
+    // Mobile keyboard handling
+    this.setupMobileKeyboardHandlers();
+  }
+
+  /**
+   * Setup mobile keyboard and viewport handlers
+   */
+  setupMobileKeyboardHandlers() {
+    // Detect mobile device
+    const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    
+    if (!isMobile) return;
+    
+    // Handle viewport changes when keyboard appears/disappears
+    let initialViewportHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+    
+    const handleViewportChange = () => {
+      if (window.visualViewport) {
+        const currentHeight = window.visualViewport.height;
+        const heightDiff = initialViewportHeight - currentHeight;
+        
+        // If the viewport height decreased significantly, keyboard is likely open
+        if (heightDiff > 150) {
+          document.body.classList.add('keyboard-open');
+        } else {
+          document.body.classList.remove('keyboard-open');
+        }
+      }
+    };
+    
+    // Modern viewport API
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', handleViewportChange);
+    }
+    
+    // Fallback for older browsers
+    window.addEventListener('resize', handleViewportChange);
+    
+    // Smooth scroll to active input on mobile
+    const inputs = document.querySelectorAll('input, select, textarea');
+    inputs.forEach(input => {
+      input.addEventListener('focus', () => {
+        // Small delay to ensure keyboard animation completes
+        setTimeout(() => {
+          input.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'center',
+            inline: 'nearest'
+          });
+        }, 300);
+      });
+    });
   }
 
   /* =================================================================

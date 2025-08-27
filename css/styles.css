@@ -92,6 +92,11 @@ html {
   -webkit-text-size-adjust: 100%;
   -moz-tab-size: 4;
   tab-size: 4;
+  /* Improve mobile scrolling */
+  -webkit-overflow-scrolling: touch;
+  /* Better text rendering */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 body {
@@ -103,6 +108,9 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  /* Improve performance on mobile */
+  contain: layout style paint;
+  will-change: auto;
 }
 
 /* Remove default styling from lists */
@@ -361,6 +369,11 @@ a:hover, a:focus {
   font-size: var(--font-size-base);
   transition: all var(--transition-fast);
   background-color: var(--white);
+  /* Enhanced mobile interaction */
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  /* Prevent iOS zoom on focus for input elements */
+  font-size: max(16px, var(--font-size-base));
 }
 
 .form-input:focus,
@@ -431,6 +444,11 @@ a:hover, a:focus {
   cursor: pointer;
   position: relative;
   overflow: hidden;
+  /* Enhanced mobile touch targets */
+  min-height: 44px; /* iOS minimum */
+  min-width: 44px;
+  touch-action: manipulation; /* Prevent double-tap zoom */
+  -webkit-tap-highlight-color: transparent; /* Remove iOS tap highlight */
 }
 
 .btn-large {
@@ -620,6 +638,96 @@ a:hover, a:focus {
     flex-direction: column;
     align-items: flex-start;
     gap: var(--space-2);
+  }
+  
+  /* Enhanced mobile touch targets and spacing */
+  .container {
+    padding-left: var(--space-4);
+    padding-right: var(--space-4);
+  }
+  
+  /* Improve tap targets on mobile */
+  .btn-link {
+    min-height: 44px;
+    min-width: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    padding: var(--space-2) var(--space-3);
+  }
+  
+  /* Better form spacing on mobile */
+  .send-form {
+    gap: var(--space-5);
+  }
+  
+  .form-group {
+    gap: var(--space-3);
+  }
+  
+  /* Larger text for better readability */
+  .title-main {
+    font-size: var(--font-size-2xl);
+  }
+  
+  .title-subtitle {
+    font-size: var(--font-size-base);
+  }
+  
+  /* Better mobile button sizing */
+  .btn-large {
+    min-height: 60px; /* Even larger for mobile */
+    font-size: var(--font-size-lg);
+  }
+  
+  /* Improve form inputs on mobile */
+  .form-input,
+  .form-select {
+    min-height: 52px; /* Slightly larger on mobile */
+    padding: var(--space-4);
+    border-radius: var(--radius-lg); /* Larger border radius */
+  }
+  
+  /* Better status message visibility on mobile */
+  .status-message {
+    margin: var(--space-4) 0;
+    font-size: var(--font-size-base);
+  }
+  
+  /* Handle mobile keyboard appearance */
+  .send-form {
+    /* Ensure form doesn't get squished by keyboard */
+    min-height: auto;
+  }
+  
+  /* Progress bar adjustments for mobile */
+  .progress-container {
+    margin: var(--space-4) 0;
+  }
+  
+  .progress-text {
+    font-size: var(--font-size-sm);
+    text-align: center;
+    margin-top: var(--space-2);
+  }
+  
+  /* Mobile keyboard state adjustments */
+  body.keyboard-open {
+    /* Reduce spacing when keyboard is open to show more content */
+    --space-8: 1rem;
+    --space-12: 1.5rem;
+  }
+  
+  body.keyboard-open .main {
+    padding-top: var(--space-4);
+    padding-bottom: var(--space-4);
+  }
+  
+  body.keyboard-open .container {
+    padding-top: 0;
+    padding-bottom: var(--space-2);
   }
 }
 
