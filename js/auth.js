@@ -184,72 +184,88 @@ class AuthManager {
   }
 
   /**
-   * Request access token using OAuth2 flow
+   * Request access token using OAuth2 redirect flow
    */
   async requestAccessToken() {
     return new Promise((resolve, reject) => {
-      console.log('Initializing OAuth2 token client...');
+      console.log('Starting OAuth2 redirect flow...');
       
       try {
-        const client = this.google.accounts.oauth2.initTokenClient({
-          client_id: CONFIG.GOOGLE_CLIENT_ID,
-          scope: this.SCOPES,
-          callback: (response) => {
-            console.log('OAuth2 token response:', response);
-            
-            if (response.error) {
-              console.error('OAuth2 error:', response.error);
-              reject(new Error(response.error));
-              return;
-            }
-            
-            if (!response.access_token) {
-              console.error('No access token in response');
-              reject(new Error('No access token received'));
-              return;
-            }
-            
-            console.log('Successfully received access token');
-            resolve(response);
-          },
-          error_callback: (error) => {
-            console.error('OAuth2 error callback:', error);
-            
-            // Handle popup blocking specifically
-            if (error.message && error.message.includes('popup')) {
-              const userMessage = 'Please allow popups for this site, or try signing in on a desktop browser. ' +
-                                'On mobile, you may need to enable popups in your browser settings.';
-              reject(new Error(userMessage));
-            } else {
-              reject(new Error(error.message || 'OAuth2 authorization failed'));
-            }
+        // Build OAuth2 authorization URL for redirect flow
+        const authUrl = this.buildAuthUrl();
+        
+        // Listen for message from redirect page
+        const messageHandler = (event) => {
+          if (event.origin !== window.location.origin) {
+            return; // Ignore messages from other origins
           }
-        });
-
-        console.log('Requesting access token...');
+          
+          if (event.data.type === 'oauth_success') {
+            window.removeEventListener('message', messageHandler);
+            console.log('OAuth2 token received via redirect');
+            resolve(event.data.data);
+          } else if (event.data.type === 'oauth_error') {
+            window.removeEventListener('message', messageHandler);
+            reject(new Error(event.data.error));
+          }
+        };
         
-        // Check if we're on mobile or if popups might be blocked
-        const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        const isGitHubPages = window.location.hostname.includes('github.io');
-        
-        if (isMobile || isGitHubPages) {
-          // Use redirect flow for better mobile support
-          client.requestAccessToken({
-            prompt: 'consent',
-            hint: 'redirect' // Prefer redirect over popup
-          });
-        } else {
-          // Use popup flow for desktop
-          client.requestAccessToken({
-            prompt: 'consent'
-          });
+        // Check if we already have a token from redirect (page refresh case)
+        const storedToken = sessionStorage.getItem('ao3_kindle_oauth_token');
+        if (storedToken) {
+          try {
+            const tokenData = JSON.parse(storedToken);
+            if (tokenData.expires_at > Date.now()) {
+              console.log('Found valid stored OAuth token');
+              sessionStorage.removeItem('ao3_kindle_oauth_token');
+              resolve(tokenData);
+              return;
+            }
+          } catch (e) {
+            // Invalid stored token, continue with normal flow
+            sessionStorage.removeItem('ao3_kindle_oauth_token');
+          }
         }
         
+        // Add message listener for redirect response
+        window.addEventListener('message', messageHandler);
+        
+        // Redirect to OAuth authorization URL
+        console.log('Redirecting to OAuth authorization...');
+        window.location.href = authUrl;
+        
       } catch (error) {
-        console.error('Failed to initialize OAuth2 client:', error);
+        console.error('Failed to start OAuth2 flow:', error);
         reject(error);
       }
     });
+  }
+  
+  /**
+   * Build OAuth2 authorization URL for redirect flow
+   */
+  buildAuthUrl() {
+    const baseUrl = 'https://accounts.google.com/o/oauth2/v2/auth';
+    const params = new URLSearchParams({
+      client_id: CONFIG.GOOGLE_CLIENT_ID,
+      redirect_uri: window.location.origin + (window.location.pathname.includes('ao3-to-kindle') ? '/ao3-to-kindle/auth.html' : '/auth.html'),
+      response_type: 'token', // Use implicit flow for simplicity
+      scope: this.SCOPES,
+      state: this.generateState(), // CSRF protection
+      prompt: 'consent',
+      access_type: 'online'
+    });
+    
+    return `${baseUrl}?${params.toString()}`;
+  }
+  
+  /**
+   * Generate random state parameter for CSRF protection
+   */
+  generateState() {
+    const array = new Uint32Array(4);
+    crypto.getRandomValues(array);
+    return Array.from(array, dec => dec.toString(16)).join('');
   }
 
   /**
@@ -274,6 +290,40 @@ class AuthManager {
    * Check for existing authentication
    */
   async checkExistingAuth() {
+    // First check for OAuth redirect token
+    const oauthToken = sessionStorage.getItem('ao3_kindle_oauth_token');
+    if (oauthToken) {
+      try {
+        const tokenData = JSON.parse(oauthToken);
+        if (tokenData.expires_at > Date.now()) {
+          console.log('Processing OAuth redirect token');
+          
+          // Convert OAuth token to our auth format
+          this.accessToken = tokenData.access_token;
+          this.tokenExpirationTime = tokenData.expires_at;
+          this.isSignedIn = true;
+          
+          // We don't have user info from redirect, so get it
+          await this.getUserInfo();
+          
+          // Clean up the OAuth token
+          sessionStorage.removeItem('ao3_kindle_oauth_token');
+          
+          // Store in our format
+          this.storeAuthData();
+          
+          console.log('Successfully processed OAuth redirect');
+          this.notifyAuthStateChange(true, this.currentUser);
+          return;
+        } else {
+          sessionStorage.removeItem('ao3_kindle_oauth_token');
+        }
+      } catch (error) {
+        console.error('Failed to process OAuth token:', error);
+        sessionStorage.removeItem('ao3_kindle_oauth_token');
+      }
+    }
+    
     // Check if we have stored auth data in session storage
     const storedAuth = sessionStorage.getItem('ao3_kindle_auth');
     if (storedAuth) {
@@ -300,6 +350,43 @@ class AuthManager {
 
     // No valid existing auth
     this.notifyAuthStateChange(false, null);
+  }
+  
+  /**
+   * Get user info from Google API using access token
+   */
+  async getUserInfo() {
+    try {
+      const response = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+        headers: {
+          'Authorization': `Bearer ${this.accessToken}`
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch user info');
+      }
+      
+      const userInfo = await response.json();
+      this.currentUser = {
+        name: userInfo.name,
+        email: userInfo.email,
+        picture: userInfo.picture
+      };
+      
+      console.log('Retrieved user info:', {
+        name: userInfo.name,
+        email: userInfo.email
+      });
+      
+    } catch (error) {
+      console.error('Failed to get user info:', error);
+      // Use fallback user info if available
+      this.currentUser = {
+        name: 'User',
+        email: 'Unknown'
+      };
+    }
   }
 
   /* =================================================================
