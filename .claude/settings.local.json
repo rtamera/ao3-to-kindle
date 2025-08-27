@@ -4,7 +4,8 @@
       "Bash(move PLANNING.md docs )",
       "Bash(move TASK.md docs )",
       "Bash(move CLAUDE.md docs)",
-      "Bash(python:*)"
+      "Bash(python:*)",
+      "Bash(git push:*)"
     ],
     "deny": [],
     "ask": []

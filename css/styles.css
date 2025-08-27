@@ -274,8 +274,29 @@ a:hover, a:focus {
 .auth-description {
   text-align: center;
   color: var(--gray-600);
-  margin-bottom: var(--space-8);
+  margin-bottom: var(--space-6);
   line-height: 1.7;
+}
+
+.auth-help {
+  background: linear-gradient(135deg, rgba(255, 152, 0, 0.1) 0%, rgba(255, 152, 0, 0.05) 100%);
+  border: 1px solid rgba(255, 152, 0, 0.2);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  margin: var(--space-4) 0 var(--space-6) 0;
+  text-align: center;
+}
+
+.auth-help .help-text {
+  color: var(--gray-700);
+  font-size: var(--font-size-sm);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.auth-help strong {
+  color: var(--warning-orange);
+  font-weight: 600;
 }
 
 .google-signin-container {

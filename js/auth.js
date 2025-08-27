@@ -214,14 +214,36 @@ class AuthManager {
           },
           error_callback: (error) => {
             console.error('OAuth2 error callback:', error);
-            reject(new Error(error.message || 'OAuth2 authorization failed'));
+            
+            // Handle popup blocking specifically
+            if (error.message && error.message.includes('popup')) {
+              const userMessage = 'Please allow popups for this site, or try signing in on a desktop browser. ' +
+                                'On mobile, you may need to enable popups in your browser settings.';
+              reject(new Error(userMessage));
+            } else {
+              reject(new Error(error.message || 'OAuth2 authorization failed'));
+            }
           }
         });
 
         console.log('Requesting access token...');
-        client.requestAccessToken({
-          prompt: 'consent' // Force consent screen to show scopes
-        });
+        
+        // Check if we're on mobile or if popups might be blocked
+        const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        const isGitHubPages = window.location.hostname.includes('github.io');
+        
+        if (isMobile || isGitHubPages) {
+          // Use redirect flow for better mobile support
+          client.requestAccessToken({
+            prompt: 'consent',
+            hint: 'redirect' // Prefer redirect over popup
+          });
+        } else {
+          // Use popup flow for desktop
+          client.requestAccessToken({
+            prompt: 'consent'
+          });
+        }
         
       } catch (error) {
         console.error('Failed to initialize OAuth2 client:', error);
@@ -504,6 +526,14 @@ class AuthManager {
     
     // Clear any partial auth state
     this.clearAuthData();
+    
+    // Show popup help if it's a popup-related error
+    if (error && error.message && error.message.includes('popup')) {
+      const popupHelp = document.getElementById('popup-help');
+      if (popupHelp) {
+        popupHelp.hidden = false;
+      }
+    }
     
     // Notify UI of error
     const event = new CustomEvent('authError', {
