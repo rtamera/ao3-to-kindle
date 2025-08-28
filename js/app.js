@@ -237,8 +237,15 @@ class App {
       
       console.log('Form submission:', { ao3Url, kindleEmail, format });
       
-      // Step 1: Fetch AO3 work
+      // Step 1: Fetch AO3 work with rate limiting awareness
       this.updateProgress('Fetching story from AO3...', 25);
+      
+      // Show rate limiting message if this is a repeat request
+      if (window.ao3Manager.lastRequestTime && 
+          Date.now() - window.ao3Manager.lastRequestTime < window.ao3Manager.minimumDelay) {
+        this.showStatus('⏳ Waiting a moment to avoid rate limiting... AO3 requests are spaced out for better reliability.', 'info');
+      }
+      
       const workData = await window.ao3Manager.fetchWork(ao3Url, format);
       
       // Step 2: Validate file size
@@ -280,7 +287,7 @@ class App {
       let errorMessage = 'An error occurred. Please try again.';
       let showRetryAdvice = true;
       
-      // Check if error message is already user-friendly from our enhanced error handling
+      // Enhanced error message handling with rate limiting feedback
       if (error.message && (
           error.message.includes('Network connection error') ||
           error.message.includes('File is too large') ||
@@ -289,9 +296,21 @@ class App {
           error.message.includes('URL must be') ||
           error.message.includes('Please enter a valid') ||
           error.message.includes('server is experiencing') ||
-          error.message.includes('Try a different format')
+          error.message.includes('Try a different format') ||
+          error.message.includes('taking too long') ||
+          error.message.includes('rate limit') ||
+          error.message.includes('temporarily busy') ||
+          error.message.includes('wait') && error.message.includes('seconds')
       )) {
         errorMessage = error.message;
+        
+        // Add specific advice for rate limiting errors
+        if (error.message.includes('taking too long') || 
+            error.message.includes('timeout') ||
+            error.message.includes('rate limit') ||
+            error.message.includes('temporarily busy')) {
+          errorMessage += '\n\n💡 Tip: Try again in 2-3 minutes. If the issue persists, try EPUB format as it\'s usually smaller and faster.';
+        }
         
         // Don't show retry advice for validation errors or quota issues
         if (error.message.includes('URL must be') || 
@@ -498,12 +517,21 @@ class App {
      ================================================================= */
 
   /**
-   * Show status message
+   * Show status message with enhanced formatting
    */
   showStatus(message, type = 'info') {
     const statusMessage = document.getElementById('status-message');
     if (statusMessage) {
-      statusMessage.textContent = message;
+      // Handle multi-line messages for better formatting
+      const lines = message.split('\n');
+      if (lines.length > 1) {
+        statusMessage.innerHTML = lines.map(line => 
+          line.trim() ? `<div>${this.escapeHtml(line)}</div>` : '<br>'
+        ).join('');
+      } else {
+        statusMessage.textContent = message;
+      }
+      
       statusMessage.className = `status-message status-${type}`;
       
       if (this.statusSection) {
@@ -512,6 +540,15 @@ class App {
     }
     
     console.log(`Status (${type}):`, message);
+  }
+  
+  /**
+   * Escape HTML to prevent XSS
+   */
+  escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
   }
 
   /**

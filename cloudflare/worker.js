@@ -24,153 +24,216 @@ export default {
     const targetUrl = url.searchParams.get("url");
 
     if (!targetUrl) {
-      return new Response(JSON.stringify({ error: "No URL provided" }), { 
+      return new Response(JSON.stringify({ error: "No URL provided" }), {
         status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" }
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     if (!targetUrl.includes("archiveofourown.org")) {
-      return new Response(JSON.stringify({ error: "Invalid URL - must be AO3" }), { 
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" }
-      });
+      return new Response(
+        JSON.stringify({ error: "Invalid URL - must be AO3" }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
     }
 
     try {
-      // Use retry logic for AO3 requests
-      const response = await this.fetchWithRetry(targetUrl, {
-        headers: {
-          "User-Agent": "Mozilla/5.0 (compatible; AO3-to-Kindle/1.0; +https://github.com/rtamera/ao3-to-kindle)",
-          "Accept": "*/*",
-          "Accept-Language": "en-US,en;q=0.9",
-          "Cache-Control": "no-cache",
-          "Referer": "https://archiveofourown.org/"
-        }
-      }, 3, 2000); // 3 retries with 2 second initial delay
+      // Use retry logic for AO3 requests with better headers to avoid detection
+      const userAgents = [
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0"
+      ];
+      const randomUA = userAgents[Math.floor(Math.random() * userAgents.length)];
+      
+      const response = await this.fetchWithRetry(
+        targetUrl,
+        {
+          headers: {
+            "User-Agent": randomUA,
+            Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+            "Accept-Language": "en-US,en;q=0.9",
+            "Accept-Encoding": "gzip, deflate, br",
+            "DNT": "1",
+            "Connection": "keep-alive",
+            "Upgrade-Insecure-Requests": "1",
+            "Sec-Fetch-Dest": targetUrl.includes("/downloads/") ? "document" : "document",
+            "Sec-Fetch-Mode": "navigate",
+            "Sec-Fetch-Site": "same-origin",
+            "Cache-Control": "max-age=0",
+          },
+        },
+        2, // Reduced retries to avoid long waits
+        3000 // Longer initial delay
+      );
 
       if (!response.ok) {
         // Handle specific HTTP status codes
         const errorMessage = await this.getErrorMessage(response);
-        return new Response(JSON.stringify({ 
-          error: errorMessage,
-          status: response.status,
-          statusText: response.statusText,
-          retryAfter: response.headers.get('retry-after')
-        }), { 
-          status: response.status === 429 ? 429 : 502, // Preserve 429, use 502 for other AO3 errors
-          headers: { 
-            ...corsHeaders, 
-            "Content-Type": "application/json",
-            ...(response.headers.get('retry-after') && { "Retry-After": response.headers.get('retry-after') })
+        return new Response(
+          JSON.stringify({
+            error: errorMessage,
+            status: response.status,
+            statusText: response.statusText,
+            retryAfter: response.headers.get("retry-after"),
+          }),
+          {
+            status: response.status === 429 ? 429 : 502, // Preserve 429, use 502 for other AO3 errors
+            headers: {
+              ...corsHeaders,
+              "Content-Type": "application/json",
+              ...(response.headers.get("retry-after") && {
+                "Retry-After": response.headers.get("retry-after"),
+              }),
+            },
           }
-        });
+        );
       }
 
       // Handle different content types
-      const contentType = response.headers.get('content-type') || '';
+      const contentType = response.headers.get("content-type") || "";
       let responseHeaders = {
         ...corsHeaders,
         "Content-Type": contentType,
-        "Content-Length": response.headers.get('content-length'),
-        "Last-Modified": response.headers.get('last-modified'),
-        "ETag": response.headers.get('etag')
+        "Content-Length": response.headers.get("content-length"),
+        "Last-Modified": response.headers.get("last-modified"),
+        ETag: response.headers.get("etag"),
       };
-      
+
       // Remove null headers
-      Object.keys(responseHeaders).forEach(key => {
+      Object.keys(responseHeaders).forEach((key) => {
         if (responseHeaders[key] === null) {
           delete responseHeaders[key];
         }
       });
 
       // For binary files (downloads), stream the response to avoid timeout
-      if (contentType.includes('application/') || contentType.includes('octet-stream') || targetUrl.includes('/downloads/')) {
+      if (
+        contentType.includes("application/") ||
+        contentType.includes("octet-stream") ||
+        targetUrl.includes("/downloads/")
+      ) {
         // Stream the response directly to avoid loading into memory
         return new Response(response.body, {
-          headers: responseHeaders
+          headers: responseHeaders,
         });
       } else {
         // For HTML content
         const body = await response.text();
         return new Response(body, {
-          headers: responseHeaders
+          headers: responseHeaders,
         });
       }
-      
     } catch (error) {
-      console.error('Worker error:', error);
-      
+      console.error("Worker error:", error);
+
       // Classify error types
       const errorResponse = {
         error: error.message,
-        type: 'network_error',
-        timestamp: new Date().toISOString()
+        type: "network_error",
+        timestamp: new Date().toISOString(),
       };
-      
-      if (error.message.includes('timeout')) {
-        errorResponse.type = 'timeout_error';
-      } else if (error.message.includes('429')) {
-        errorResponse.type = 'rate_limit_error';
-      } else if (error.message.includes('503') || error.message.includes('502')) {
-        errorResponse.type = 'service_unavailable';
+
+      if (error.message.includes("timeout")) {
+        errorResponse.type = "timeout_error";
+      } else if (error.message.includes("429")) {
+        errorResponse.type = "rate_limit_error";
+      } else if (
+        error.message.includes("503") ||
+        error.message.includes("502")
+      ) {
+        errorResponse.type = "service_unavailable";
       }
-      
-      return new Response(JSON.stringify(errorResponse), { 
-        status: error.message.includes('429') ? 429 : 502,
-        headers: { ...corsHeaders, "Content-Type": "application/json" }
+
+      return new Response(JSON.stringify(errorResponse), {
+        status: error.message.includes("429") ? 429 : 502,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
   },
 
   /**
-   * Fetch with exponential backoff retry logic
+   * Fetch with intelligent retry logic optimized for AO3 rate limiting
    */
-  async fetchWithRetry(url, options, maxRetries = 3, initialDelay = 1000) {
+  async fetchWithRetry(url, options, maxRetries = 3, initialDelay = 2000) {
     let lastError;
-    
+    const isDownload = url.includes("/downloads/");
+
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
         console.log(`Attempt ${attempt}/${maxRetries} for ${url}`);
-        
-        // For Cloudflare Workers, use a shorter timeout to avoid hitting CPU limits
-        const timeoutMs = url.includes('/downloads/') ? 8000 : 5000; // 8s for downloads, 5s for pages
+
+        // Longer timeout for better success rate
+        const timeoutMs = isDownload ? 15000 : 8000; // 15s for downloads, 8s for pages
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
-        
+
+        // Add delay before each request (except first) to avoid rate limiting
+        if (attempt > 1) {
+          const preDelay = 1000 + Math.random() * 2000; // 1-3 second random delay
+          console.log(`Pre-request delay: ${Math.round(preDelay)}ms`);
+          await this.sleep(preDelay);
+        }
+
         const response = await fetch(url, {
           ...options,
-          signal: controller.signal
+          signal: controller.signal,
         });
-        
+
         clearTimeout(timeoutId);
-        
-        // If we get a rate limit response, wait and retry
+
+        // Handle rate limiting more aggressively
         if (response.status === 429) {
-          const retryAfter = response.headers.get('retry-after');
-          const waitTime = retryAfter ? parseInt(retryAfter) * 1000 : initialDelay * Math.pow(2, attempt - 1);
-          
+          const retryAfter = response.headers.get("retry-after");
+          const waitTime = retryAfter
+            ? parseInt(retryAfter) * 1000
+            : Math.min(initialDelay * Math.pow(2, attempt), 30000); // Cap at 30 seconds
+
           if (attempt < maxRetries) {
-            console.log(`Rate limited, waiting ${waitTime}ms before retry ${attempt + 1}`);
+            console.log(
+              `Rate limited, waiting ${waitTime}ms before retry ${attempt + 1}`
+            );
             await this.sleep(waitTime);
             continue;
           }
         }
-        
+
+        // Also retry on slow responses that might indicate soft rate limiting
+        if (response.status === 200) {
+          return response;
+        }
+
+        // Retry server errors with longer delays
+        if (response.status >= 500 && attempt < maxRetries) {
+          const serverErrorDelay = 5000 + Math.random() * 5000; // 5-10 seconds
+          console.log(`Server error ${response.status}, waiting ${Math.round(serverErrorDelay)}ms`);
+          await this.sleep(serverErrorDelay);
+          continue;
+        }
+
         return response;
-        
       } catch (error) {
         lastError = error;
         console.error(`Attempt ${attempt} failed:`, error.message);
-        
+
         if (attempt < maxRetries) {
-          const waitTime = initialDelay * Math.pow(2, attempt - 1) + Math.random() * 1000; // Add jitter
-          console.log(`Waiting ${Math.round(waitTime)}ms before retry ${attempt + 1}`);
+          // Longer backoff for timeouts as they often indicate rate limiting
+          const isTimeout = error.name === 'AbortError' || error.message.includes('timeout');
+          const waitTime = isTimeout 
+            ? 5000 + (initialDelay * Math.pow(2, attempt - 1)) + Math.random() * 3000 // 5s + exponential + jitter
+            : initialDelay * Math.pow(2, attempt - 1) + Math.random() * 1000; // Standard backoff
+            
+          console.log(
+            `Waiting ${Math.round(waitTime)}ms before retry ${attempt + 1}${isTimeout ? ' (timeout detected)' : ''}`
+          );
           await this.sleep(waitTime);
         }
       }
     }
-    
+
     throw lastError;
   },
 
@@ -195,7 +258,7 @@ export default {
       default:
         try {
           const text = await response.text();
-          if (text.includes('Retry later')) {
+          if (text.includes("Retry later")) {
             return "AO3 requests to retry later. Please wait and try again.";
           }
           return `AO3 returned ${response.status}: ${response.statusText}`;
@@ -209,6 +272,6 @@ export default {
    * Sleep utility function
    */
   sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-  }
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  },
 };

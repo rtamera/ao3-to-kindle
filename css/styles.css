@@ -570,6 +570,40 @@ a:hover, a:focus {
   border: 1px solid #FED7AA;
 }
 
+/* Rate limiting and queue status styles */
+.status-message.rate-limited {
+  color: #b45309;
+  background-color: #fef3c7;
+  border: 2px solid #f59e0b;
+}
+
+.status-message.queued {
+  color: #1e40af;
+  background-color: #dbeafe;
+  border: 2px solid #3b82f6;
+}
+
+/* Multi-line status message formatting */
+.status-message div {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.status-message div + div {
+  margin-top: 0.5rem;
+}
+
+/* Pulse animation for waiting states */
+.status-message.rate-limited,
+.status-message.queued {
+  animation: pulse-subtle 2s infinite;
+}
+
+@keyframes pulse-subtle {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.8; }
+}
+
 /* Progress Bar */
 .progress-container {
   margin-top: var(--space-4);
@@ -715,6 +749,16 @@ a:hover, a:focus {
   .status-message {
     margin: var(--space-4) 0;
     font-size: var(--font-size-base);
+  }
+  
+  /* Ensure multi-line messages display well on mobile */
+  .status-message div {
+    margin: 0;
+    line-height: 1.4;
+  }
+  
+  .status-message div + div {
+    margin-top: var(--space-2);
   }
   
   /* Handle mobile keyboard appearance */
