@@ -22,6 +22,14 @@ class AO3Manager {
    */
   init() {
     console.log('Initializing AO3 manager...');
+    
+    // Check if CONFIG is available
+    if (typeof CONFIG === 'undefined' || !CONFIG.CORS_PROXY_URL) {
+      console.error('CONFIG not available for AO3 manager');
+      return;
+    }
+    
+    this.corsProxyUrl = CONFIG.CORS_PROXY_URL;
     this.isInitialized = true;
     console.log('AO3 manager initialized successfully');
   }

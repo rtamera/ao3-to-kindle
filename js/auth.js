@@ -34,8 +34,8 @@ class AuthManager {
     try {
       console.log('Initializing Google Authentication...');
       
-      // Wait for Google APIs to load
-      await this.waitForGoogleAPIs();
+      // Wait for CONFIG and Google APIs to load
+      await this.waitForDependencies();
       
       // Initialize gapi client
       await this.initGapiClient();
@@ -57,26 +57,34 @@ class AuthManager {
   }
 
   /**
-   * Wait for Google APIs to load
+   * Wait for CONFIG and Google APIs to load
    */
-  async waitForGoogleAPIs() {
+  async waitForDependencies() {
     return new Promise((resolve, reject) => {
       const timeout = setTimeout(() => {
-        reject(new Error('Google APIs failed to load within 10 seconds. Please check your internet connection and try refreshing the page.'));
+        reject(new Error('Dependencies failed to load within 10 seconds. Please refresh the page and try again.'));
       }, 10000);
 
-      const checkAPIs = () => {
-        if (typeof gapi !== 'undefined' && typeof google !== 'undefined') {
+      const checkDependencies = () => {
+        // Check if CONFIG is loaded
+        const configReady = typeof CONFIG !== 'undefined' && CONFIG.GOOGLE_CLIENT_ID;
+        
+        // Check if Google APIs are loaded
+        const apisReady = typeof gapi !== 'undefined' && typeof google !== 'undefined';
+        
+        if (configReady && apisReady) {
           clearTimeout(timeout);
           this.gapi = gapi;
           this.google = google;
+          console.log('All dependencies loaded successfully');
           resolve();
         } else {
-          setTimeout(checkAPIs, 100);
+          console.log('Waiting for dependencies...', { configReady, apisReady });
+          setTimeout(checkDependencies, 100);
         }
       };
       
-      checkAPIs();
+      checkDependencies();
     });
   }
 
@@ -84,6 +92,11 @@ class AuthManager {
    * Initialize Google API client
    */
   async initGapiClient() {
+    // Ensure CONFIG is available
+    if (typeof CONFIG === 'undefined') {
+      throw new Error('Configuration not loaded');
+    }
+    
     await this.gapi.load('client', async () => {
       await this.gapi.client.init({
         apiKey: CONFIG.GOOGLE_API_KEY || '',
@@ -98,6 +111,11 @@ class AuthManager {
    * Initialize Google Sign-In
    */
   async initGoogleSignIn() {
+    // Ensure CONFIG is available
+    if (typeof CONFIG === 'undefined' || !CONFIG.GOOGLE_CLIENT_ID) {
+      throw new Error('Configuration not loaded');
+    }
+    
     // Initialize Google Identity Services
     this.google.accounts.id.initialize({
       client_id: CONFIG.GOOGLE_CLIENT_ID,
@@ -120,6 +138,12 @@ class AuthManager {
    * Render Google Sign-In button
    */
   renderSignInButton() {
+    // Ensure CONFIG is available
+    if (typeof CONFIG === 'undefined' || !CONFIG.GOOGLE_CLIENT_ID) {
+      console.error('CONFIG not available for sign-in button rendering');
+      return;
+    }
+    
     const buttonContainer = document.querySelector('.g_id_signin');
     if (buttonContainer && CONFIG.GOOGLE_CLIENT_ID) {
       // Detect mobile for optimal button configuration
@@ -245,6 +269,11 @@ class AuthManager {
    * Build OAuth2 authorization URL for redirect flow
    */
   buildAuthUrl() {
+    // Ensure CONFIG is available
+    if (typeof CONFIG === 'undefined' || !CONFIG.GOOGLE_CLIENT_ID) {
+      throw new Error('Configuration not loaded. Please refresh the page and try again.');
+    }
+    
     const baseUrl = 'https://accounts.google.com/o/oauth2/v2/auth';
     const params = new URLSearchParams({
       client_id: CONFIG.GOOGLE_CLIENT_ID,
