@@ -203,7 +203,7 @@ class AO3Manager {
       
       const response = await window.utilsManager.withTimeout(
         fetch(proxyUrl),
-        30000 // 30 second timeout for file downloads
+        12000 // 12 second timeout for file downloads (Worker times out at 8s)
       );
       
       if (!response.ok) {
@@ -261,19 +261,57 @@ class AO3Manager {
 
     try {
       return await window.utilsManager.retryRequest(downloadFunction, {
-        maxRetries: 2,
-        baseDelay: 3000, // Start with 3 seconds for file downloads
-        maxDelay: 10000  // Cap at 10 seconds
+        maxRetries: 1, // Reduce retries to avoid long waits
+        baseDelay: 2000, // 2 seconds for file downloads
+        maxDelay: 5000   // Cap at 5 seconds
       });
     } catch (error) {
-      console.error('Error downloading file:', error);
+      // If Worker consistently fails, try direct download (will likely be blocked by CORS, but worth trying)
+      console.log('Worker download failed, attempting direct download...');
+      
+      try {
+        const directResponse = await window.utilsManager.withTimeout(
+          fetch(downloadUrl, {
+            mode: 'cors',
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (compatible; AO3-to-Kindle/1.0)',
+              'Accept': '*/*'
+            }
+          }),
+          15000 // 15 second timeout for direct download
+        );
+        
+        if (!directResponse.ok) {
+          throw new Error(`Direct download failed: ${directResponse.statusText}`);
+        }
+        
+        const arrayBuffer = await directResponse.arrayBuffer();
+        const base64Data = window.utilsManager.arrayBufferToBase64(arrayBuffer);
+        const mimeType = directResponse.headers.get('content-type') || `application/${format}`;
+        
+        console.log('Direct download succeeded as fallback');
+        return { base64Data, mimeType, size: arrayBuffer.byteLength };
+        
+      } catch (directError) {
+        console.log('Direct download also failed:', directError.message);
+        
+        // Provide more helpful error message
+        const isTimeout = error.message.includes('timeout') || error.message.includes('timed out');
+        if (isTimeout) {
+          throw new Error(`Download is taking too long. This might be due to:\n• The file is very large\n• AO3 servers are slow\n• Network issues\n\nPlease try again in a few minutes or try a different format (EPUB is usually smaller than MOBI).`);
+        }
+        
+        throw error; // Re-throw original error
+      }
+    } catch (finalError) {
+      console.error('Error downloading file:', finalError);
       
       // If it's already a user-friendly file size error, pass it through
-      if (error.message.includes('too large') || error.message.includes('25MB')) {
-        throw error;
+      if (finalError.message.includes('too large') || finalError.message.includes('25MB')) {
+        throw finalError;
       }
       
-      const classified = window.utilsManager.classifyError(error);
+      const classified = window.utilsManager.classifyError(finalError);
       throw new Error(classified.userMessage);
     }
   }

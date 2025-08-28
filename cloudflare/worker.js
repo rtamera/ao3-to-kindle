@@ -84,10 +84,10 @@ export default {
         }
       });
 
-      // For binary files (downloads), preserve the original content type
+      // For binary files (downloads), stream the response to avoid timeout
       if (contentType.includes('application/') || contentType.includes('octet-stream') || targetUrl.includes('/downloads/')) {
-        const body = await response.arrayBuffer();
-        return new Response(body, {
+        // Stream the response directly to avoid loading into memory
+        return new Response(response.body, {
           headers: responseHeaders
         });
       } else {
@@ -133,11 +133,17 @@ export default {
       try {
         console.log(`Attempt ${attempt}/${maxRetries} for ${url}`);
         
+        // For Cloudflare Workers, use a shorter timeout to avoid hitting CPU limits
+        const timeoutMs = url.includes('/downloads/') ? 8000 : 5000; // 8s for downloads, 5s for pages
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+        
         const response = await fetch(url, {
           ...options,
-          // Add timeout
-          signal: AbortSignal.timeout(30000) // 30 second timeout
+          signal: controller.signal
         });
+        
+        clearTimeout(timeoutId);
         
         // If we get a rate limit response, wait and retry
         if (response.status === 429) {
