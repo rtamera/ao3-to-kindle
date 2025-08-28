@@ -269,9 +269,20 @@ class AuthManager {
    * Build OAuth2 authorization URL for redirect flow
    */
   buildAuthUrl() {
+    console.log('buildAuthUrl called, checking CONFIG...', { 
+      configExists: typeof CONFIG !== 'undefined', 
+      clientId: typeof CONFIG !== 'undefined' ? CONFIG.GOOGLE_CLIENT_ID : 'undefined'
+    });
+    
     // Ensure CONFIG is available
-    if (typeof CONFIG === 'undefined' || !CONFIG.GOOGLE_CLIENT_ID) {
+    if (typeof CONFIG === 'undefined') {
+      console.error('CONFIG is undefined!');
       throw new Error('Configuration not loaded. Please refresh the page and try again.');
+    }
+    
+    if (!CONFIG.GOOGLE_CLIENT_ID) {
+      console.error('CONFIG.GOOGLE_CLIENT_ID is missing!', CONFIG);
+      throw new Error('Google Client ID not configured. Please refresh the page and try again.');
     }
     
     const baseUrl = 'https://accounts.google.com/o/oauth2/v2/auth';
